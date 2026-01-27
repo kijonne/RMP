@@ -1,0 +1,250 @@
+Вот решения всех заданий из лабораторной работы №4 на Kotlin. Каждое задание реализовано как отдельная программа (можно запускать в IntelliJ IDEA или онлайн-компиляторе Kotlin). Я использовал `readln()` для ввода, обработку ошибок и ветвления (`if`, `when`).
+
+### Задание 5.1 — Год, месяц, високосный, дни, сезон
+
+```kotlin
+fun isLeapYear(year: Int): Boolean = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+
+fun daysInMonth(year: Int, month: Int): Int {
+    return when (month) {
+        1, 3, 5, 7, 8, 10, 12 -> 31
+        4, 6, 9, 11 -> 30
+        2 -> if (isLeapYear(year)) 29 else 28
+        else -> -1
+    }
+}
+
+fun getSeason(month: Int): String {
+    return when (month) {
+        in 3..5 -> "весна"
+        in 6..8 -> "лето"
+        in 9..11 -> "осень"
+        12, 1, 2 -> "зима"
+        else -> "неизвестно"
+    }
+}
+
+fun main() {
+    println("Введите год:")
+    val yearInput = readln()
+    val year = yearInput.toIntOrNull() ?: run {
+        println("Ошибка: некорректный год")
+        return
+    }
+
+    if (year <= 0) {
+        println("Год должен быть положительным")
+        return
+    }
+
+    println("Введите номер месяца (1–12):")
+    val monthInput = readln()
+    val month = monthInput.toIntOrNull() ?: run {
+        println("Ошибка: некорректный месяц")
+        return
+    }
+
+    if (month < 1 || month > 12) {
+        println("Месяц должен быть от 1 до 12")
+        return
+    }
+
+    val isLeap = isLeapYear(year)
+    println("Год $year ${if (isLeap) "високосный" else "не високосный"}")
+
+    val days = daysInMonth(year, month)
+    println("В месяце $month $days ${if (days == 1) "день" else "дней"}")
+
+    val season = getSeason(month)
+    println("Сезон: $season")
+}
+```
+
+### Задание 5.2 — Треугольник
+
+```kotlin
+fun main() {
+    println("Введите 3 стороны треугольника (через пробел):")
+    val input = readln().split(" ")
+    if (input.size != 3) {
+        println("Ошибка: нужно ввести ровно 3 числа")
+        return
+    }
+
+    val a = input[0].toDoubleOrNull() ?: return println("Ошибка в первой стороне")
+    val b = input[1].toDoubleOrNull() ?: return println("Ошибка во второй стороне")
+    val c = input[2].toDoubleOrNull() ?: return println("Ошибка в третьей стороне")
+
+    if (a <= 0 || b <= 0 || c <= 0) {
+        println("Стороны должны быть положительными")
+        return
+    }
+
+    if (a + b <= c || a + c <= b || b + c <= a) {
+        println("Такой треугольник не существует")
+        return
+    }
+
+    when {
+        a == b && b == c -> println("Существует. Это равносторонний треугольник")
+        a == b || a == c || b == c -> println("Существует. Это равнобедренный треугольник")
+        else -> println("Существует. Это разносторонний треугольник")
+    }
+}
+```
+
+### Задание 5.3 — Конвертер валют
+
+```kotlin
+fun main() {
+    val usdRate = 95.0   // курс доллара за 1 USD
+    val eurRate = 105.0  // курс евро за 1 EUR
+
+    println("Введите сумму в рублях:")
+    val rubles = readln().toDoubleOrNull() ?: return println("Ошибка: некорректная сумма")
+
+    if (rubles < 0) {
+        println("Сумма не может быть отрицательной")
+        return
+    }
+
+    println("Введите валюту (USD или EUR):")
+    val currency = readln().trim().uppercase()
+
+    val result = when (currency) {
+        "USD" -> rubles / usdRate
+        "EUR" -> rubles / eurRate
+        else -> {
+            println("Некорректная валюта → выводим исходную сумму")
+            rubles
+        }
+    }
+
+    if (currency == "USD" || currency == "EUR") {
+        println("Сумма в $currency: %.2f".format(result))
+    } else {
+        println("Исходная сумма: %.2f рублей".format(result))
+    }
+}
+```
+
+### Задание 5.4 — Функция y(x)
+
+```kotlin
+import kotlin.math.*
+
+fun main() {
+    println("Введите a:")
+    val a = readln().toDoubleOrNull() ?: return println("Ошибка в a")
+
+    println("Введите x:")
+    val x = readln().toDoubleOrNull() ?: return println("Ошибка в x")
+
+    val y = when {
+        x < 0 -> a + x.pow(3)
+        x in 0.0..<3.0 -> sin(x) + cos(x)
+        x in 3.0..<5.0 -> 1 / (a - x)
+        x >= 5.0 -> sqrt(x - a)
+        else -> Double.NaN
+    }
+
+    if (y.isNaN() || y.isInfinite()) {
+        println("Результат невозможно вычислить (деление на 0 или отрицательный корень)")
+    } else {
+        println("y(x) = %.3f".format(y))
+    }
+}
+```
+
+### Задание 5.5 — Скидка и сдача
+
+```kotlin
+fun main() {
+    println("Введите сумму покупки (руб):")
+    val purchase = readln().toDoubleOrNull() ?: return println("Ошибка в сумме покупки")
+
+    if (purchase <= 0) return println("Сумма покупки должна быть положительной")
+
+    println("Введите внесенную сумму (руб):")
+    val paid = readln().toDoubleOrNull() ?: return println("Ошибка во внесенной сумме")
+
+    if (paid < 0) return println("Внесенная сумма не может быть отрицательной")
+
+    val discountPercent = when {
+        purchase > 5000 -> 10.0
+        purchase > 1000 -> 5.0
+        else -> 0.0
+    }
+
+    val toPay = purchase * (1 - discountPercent / 100)
+    val toPayRounded = "%.2f".format(toPay).toDouble()
+
+    println("Сумма к оплате со скидкой $discountPercent%: $toPayRounded руб.")
+
+    when {
+        paid == toPayRounded -> println("Спасибо!")
+        paid > toPayRounded -> {
+            val change = paid - toPayRounded
+            println("Возьмите сдачу: %.2f руб.".format(change))
+        }
+        else -> {
+            val needed = toPayRounded - paid
+            println("Требуется доплатить: %.2f руб.".format(needed))
+        }
+    }
+}
+```
+
+### Ответы на контрольные вопросы (8)
+
+8.1 Синтаксис условного оператора на Kotlin (if-else):
+
+```kotlin
+if (условие) {
+    // код
+} else if (другое_условие) {
+    // код
+} else {
+    // код
+}
+```
+
+Может использоваться как выражение:
+
+```kotlin
+val max = if (a > b) a else b
+```
+
+8.2 Синтаксис оператора множественного выбора (when):
+
+```kotlin
+when (значение) {
+    вариант1 -> // код
+    вариант2, вариант3 -> // код
+    in 1..10 -> // код
+    else -> // код по умолчанию
+}
+```
+
+Или без аргумента (как цепочка if-else):
+
+```kotlin
+when {
+    условие1 -> // код
+    условие2 -> // код
+    else -> // код
+}
+```
+
+8.3 Синтаксис тернарного оператора на Kotlin:
+
+В Kotlin **нет** классического тернарного оператора `условие ? значение1 : значение2`.  
+Его заменяет if-выражение в одну строку:
+
+```kotlin
+val result = if (условие) значение1 else значение2
+```
+
+Это полностью аналогично и часто удобнее.
+
+Удачи с лабораторной! Если нужно доработать или добавить комментарии/тесты — пиши.
