@@ -1,0 +1,40 @@
+fun main() {
+    println("Введите сумму покупки (руб):")
+    var inputPurchase = readln().trim()
+    inputPurchase = inputPurchase.replace(',', '.')   // ← вот это главное
+    val purchase = inputPurchase.toDoubleOrNull() ?: return println("Ошибка: некорректная сумма покупки")
+
+    println("Введите внесенную сумму (руб):")
+    var inputPaid = readln().trim()
+    inputPaid = inputPaid.replace(',', '.')           // ← и здесь тоже
+    val paid = inputPaid.toDoubleOrNull() ?: return println("Ошибка: некорректная внесенная сумма")
+
+    if (purchase <= 0 || paid < 0) {
+        println("Суммы должны быть положительными")
+        return
+    }
+
+    val discountPercent = when {
+        purchase > 5000 -> 10.0
+        purchase > 1000 -> 5.0
+        else -> 0.0
+    }
+
+    val toPay = purchase * (1 - discountPercent / 100)
+    // Округляем до 2 знаков (математически правильно)
+    val toPayRounded = "%.2f".format(toPay).toDouble()
+
+    println("Сумма к оплате со скидкой $discountPercent%: %.2f руб.".format(toPay))
+
+    when {
+        paid == toPayRounded -> println("Спасибо!")
+        paid > toPayRounded -> {
+            val change = paid - toPayRounded
+            println("Возьмите сдачу: %.2f руб.".format(change))
+        }
+        else -> {
+            val needed = toPayRounded - paid
+            println("Требуется доплатить: %.2f руб.".format(needed))
+        }
+    }
+}
