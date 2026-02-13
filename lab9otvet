@@ -1,0 +1,31 @@
+1 Какие стандартные типы данных коллекций имеются в Kotlin?
+В Kotlin стандартные коллекции включают:
+
+Списки (List): упорядоченные коллекции с возможными дубликатами (listOf() для immutable, mutableListOf() для mutable).
+Множества (Set): неупорядоченные коллекции без дубликатов (setOf(), mutableSetOf()).
+Словари (Map): пары ключ-значение, ключи уникальны (mapOf(), mutableMapOf()).
+
+8.2 Как объявить коллекцию в Kotlin?
+
+Immutable список: val list = listOf(1, 2, 3)
+Mutable список: val mutableList = mutableListOf("a", "b")
+Immutable множество: val set = setOf("apple", "banana")
+Immutable словарь: val map = mapOf("key1" to "value1", "key2" to "value2")
+
+8.3 Как добавить элемент в список в Kotlin?
+Для mutable списка: list.add(element) или list += element. Пример: mutableList.add("new").
+8.4 Как добавить элемент в словарь в Kotlin?
+Для mutable словаря: map[key] = value или map.put(key, value). Пример: mutableMap["newKey"] = "newValue".
+8.5 Как перебрать элементы коллекции в Kotlin?
+
+Цикл for: for (item in collection) { println(item) }
+Метод forEach: collection.forEach { println(it) }
+С индексами (для списков): list.forEachIndexed { index, value -> println("$index: $value") }
+
+8.6 Какие операции с множествами доступны в Kotlin?
+
+Объединение: set1 union set2 (или set1 + set2).
+Пересечение: set1 intersect set2.
+Вычитание: set1 subtract set2 (элементы в set1, но не в set2).
+Проверка наличия: set.contains(element).
+Другие: size, isEmpty(), итерация через for/forEach.
