@@ -1,0 +1,93 @@
+import kotlin.system.exitProcess
+
+fun main() {
+    // 5.1 Создание, заполнение и вывод списка (Животные)
+    println("=== 5.1 Список животных ===")
+    val animals = mutableListOf("Лев", "Слон", "Жираф") // 3 элемента программно
+    print("Введите n (количество элементов для ввода): ")
+    val n1 = readln().toInt()
+    repeat(n1) {
+        print("Введите животное: ")
+        animals.add(readln())
+    }
+    animals.forEachIndexed { index, value ->
+        println("${index + 1} - $value")
+    }
+    println("Количество элементов: ${animals.size}")
+
+    // 5.2 Обработка списков (список целых чисел)
+    println("\n=== 5.2 Обработка списка чисел ===")
+    val numbers = mutableListOf<Int>()
+    print("Введите n (количество элементов): ")
+    val n2 = readln().toInt()
+    repeat(n2) {
+        print("Введите число: ")
+        numbers.add(readln().toInt())
+    }
+    val index100 = numbers.indexOf(100)
+    println("Индекс элемента со значением 100: $index100 (если -1, то отсутствует)")
+    val sum = numbers.sum()
+    println("Сумма элементов: $sum")
+    val average = numbers.average()
+    println("Среднее значение: $average")
+    val allPositive = numbers.all { it > 0 }
+    println("Все ли числа больше нуля: $allPositive")
+    val odds = numbers.filter { it % 2 != 0 }
+    println("Все нечетные значения: $odds")
+
+    // 5.3 Создание, заполнение и вывод словаря (Артикул товара - описание)
+    println("\n=== 5.3 Словарь артикулов товаров ===")
+    val products = mutableMapOf(
+        "A001" to "Футболка",
+        "B002" to "Брюки",
+        "C003" to "Шляпа"
+    ) // 3 элемента программно
+    print("Введите n (количество элементов для ввода): ")
+    val n3 = readln().toInt()
+    repeat(n3) {
+        print("Введите артикул (ключ): ")
+        val key = readln()
+        print("Введите описание (значение): ")
+        val value = readln()
+        products[key] = value
+    }
+    for ((key, value) in products) {
+        println("$key - $value")
+    }
+    println("Количество элементов: ${products.size}")
+
+    // 5.4 Поиск по словарю и удаление элементов
+    println("\n=== 5.4 Поиск и удаление в словаре ===")
+    print("Введите ключ для проверки: ")
+    val checkKey = readln()
+    if (checkKey in products) {
+        println("Ключ содержится, значение: ${products[checkKey]}")
+    } else {
+        println("Указанный ключ отсутствует")
+    }
+    print("Введите значение для подсчета совпадений: ")
+    val countValue = readln()
+    val count = products.values.count { it == countValue }
+    println("Количество совпадений значения: $count")
+    print("Введите ключ для удаления: ")
+    val delKey = readln()
+    products.remove(delKey)
+    println("Содержимое словаря после удаления:")
+    for ((key, value) in products) {
+        println("$key - $value")
+    }
+
+    // 5.5 Обработка множеств (студенты на пересдаче)
+    println("\n=== 5.5 Обработка множеств студентов ===")
+    val set1 = setOf("Иванов Иван", "Петров Петр", "Сидоров Сидр") // Не сдали у преподавателя 1
+    val set2 = setOf("Петров Петр", "Кузнецов Кузьма", "Сидоров Сидр") // Не сдали у преподавателя 2
+    val totalRetake = set1 union set2
+    println("Всего студентов на пересдаче: ${totalRetake.size}")
+    println("Список: $totalRetake")
+    val bothFailed = set1 intersect set2
+    println("Не сдали оба зачета: ${bothFailed.size}")
+    println("Список: $bothFailed")
+    val onlyOneFailed = (set1 subtract set2) union (set2 subtract set1)
+    println("Не сдали только один зачет: ${onlyOneFailed.size}")
+    println("Список: $onlyOneFailed")
+}
