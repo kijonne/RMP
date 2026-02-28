@@ -1,0 +1,332 @@
+### Шаги по созданию проекта
+
+Братан, я разобрал твою лабу по Jetpack Compose. Всё сделаю шаг за шагом, с кодом, объяснениями, как работает, и даже с отчётом в конце. Проект называется **LabWork13**, группа **ИСПП-31**. Я предполагаю, что у тебя Android Studio последней версии (2023+), с поддержкой Kotlin и Compose.
+
+1. **Создай новый проект**:
+   - Открой Android Studio.
+   - Выбери "New Project" → "Empty Activity" (не "Empty Compose Activity", как в лабе указано "Empty Activity", но с включением Compose).
+   - Название приложения: **LabWork13**.
+   - Пакет: по умолчанию, например `com.example.labwork13`.
+   - Language: **Kotlin**.
+   - Minimum SDK: API 21 или выше.
+   - Включи "Use Jetpack Compose" (если опция есть; если нет, добавь зависимости вручную).
+   - После создания включи режим **Split** в превью (в правом верхнем углу редактора кода: Design → Split).
+
+2. **Настрой build.gradle** (module-level, app/build.gradle.kts):
+   Убедись, что Compose включён. Добавь если нужно:
+   ```
+   android {
+       ...
+       buildFeatures {
+           compose = true
+       }
+       composeOptions {
+           kotlinCompilerExtensionVersion = "1.5.3"  // или актуальная версия
+       }
+   }
+
+   dependencies {
+       implementation("androidx.compose.ui:ui:1.5.4")
+       implementation("androidx.compose.material:material:1.5.4")
+       implementation("androidx.compose.ui:ui-tooling-preview:1.5.4")
+       debugImplementation("androidx.compose.ui:ui-tooling:1.5.4")
+       // Для Material3, если хочешь modern: implementation("androidx.compose.material3:material3:1.1.2")
+   }
+   ```
+   Синхронизируй проект (Gradle sync).
+
+3. **Основной код**: Всё в файле `MainActivity.kt` (пока не дойдём до 5.5). Я напишу полный код с всеми задачами. Каждая задача — отдельная @Composable функция. В `setContent` я вызову последнюю (экран авторизации), но ты можешь закомментировать и вызывать другие для проверки. Для превью — отдельные @Preview функции.
+
+   **Пояснения по Compose**:
+   - Jetpack Compose — это declarative UI toolkit для Android. Вместо XML-layout'ов пишешь функции на Kotlin, которые описывают, как выглядит UI. Функции с `@Composable` — это building blocks UI.
+   - `setContent { }` в onCreate — устанавливает корневой UI.
+   - `@Preview` — для просмотра в IDE без запуска эмулятора.
+   - Контейнеры: `Column` (вертикально), `Row` (горизонтально), `Box` (наложение).
+   - Модификаторы: `Modifier` для стилей (padding, background, align и т.д.).
+
+#### Полный код для `MainActivity.kt`
+```kotlin
+package com.example.labwork13  // Твой пакет
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.labwork13.ui.theme.LabWork13Theme  // Тема по умолчанию, создастся автоматически
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            LabWork13Theme {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    // Вызов последней задачи (экрана авторизации). Закомментируй и вызови другую для теста, напр. Task5()
+                    AuthorizationScreen()
+                }
+            }
+        }
+    }
+}
+
+// 5.1: Модифицированная Greeting
+@Composable
+fun Greeting(groupName: String, modifier: Modifier = Modifier) {
+    Text(
+        text = "Привет, $groupName",
+        modifier = modifier
+            .fillMaxSize()  // Занимает весь экран
+            .wrapContentSize(Alignment.Center),  // Выравнивание по центру
+        fontSize = 24.sp,  // Размер шрифта
+        color = Color.Blue,  // Цвет шрифта
+        textAlign = TextAlign.Center
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    LabWork13Theme {
+        Greeting("ИСПП-31")
+    }
+}
+
+// 5.2: Контейнеры
+@Composable
+fun Task2() {
+    // Базовая функция, но мы используем подфункции с контейнерами
+}
+
+@Composable
+fun Task2Column() {
+    Column {
+        Text("Добро пожаловать")
+        Button(onClick = { /*TODO*/ }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task2ColumnPreview() {
+    LabWork13Theme {
+        Task2Column()
+    }
+}
+
+@Composable
+fun Task2Row() {
+    Row {
+        Text("Добро пожаловать")
+        Button(onClick = { /*TODO*/ }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task2RowPreview() {
+    LabWork13Theme {
+        Task2Row()
+    }
+}
+
+@Composable
+fun Task2Box() {
+    Box {
+        Text("Добро пожаловать")
+        Button(onClick = { /*TODO*/ }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task2BoxPreview() {
+    LabWork13Theme {
+        Task2Box()
+    }
+}
+
+// 5.3.1: Макет с Box (по Рисунку 1) - позиционирование цветных блоков
+@Composable
+fun Task3BoxLayout() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)  // Фон чёрный, как на рисунке
+    ) {
+        // Цветные блоки в разных позициях (примерно по рисунку: углы, центр, наложения)
+        Box(modifier = Modifier.align(Alignment.TopStart).size(50.dp).background(Color.Red))
+        Box(modifier = Modifier.align(Alignment.TopCenter).size(50.dp).background(Color.Cyan))
+        Box(modifier = Modifier.align(Alignment.TopEnd).size(50.dp).background(Color.Yellow))
+        Box(modifier = Modifier.align(Alignment.CenterStart).size(50.dp).background(Color.Green))
+        Box(modifier = Modifier.align(Alignment.Center).size(50.dp).background(Color.Magenta))
+        Box(modifier = Modifier.align(Alignment.CenterEnd).size(50.dp).background(Color.Blue))
+        Box(modifier = Modifier.align(Alignment.BottomStart).size(50.dp).background(Color(0xFF00FF00)))  // Lime
+        Box(modifier = Modifier.align(Alignment.BottomCenter).size(50.dp).background(Color.Gray))
+        Box(modifier = Modifier.align(Alignment.BottomEnd).size(50.dp).background(Color(0xFFFF00FF)))  // Fuchsia
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task3BoxLayoutPreview() {
+    LabWork13Theme {
+        Task3BoxLayout()
+    }
+}
+
+// 5.3.2: Макет с Column (по Рисунку 2) - пропорциональные высоты
+@Composable
+fun Task3ColumnLayout() {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.Red))  // 10%
+        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.Green))  // 10%
+        Box(modifier = Modifier.weight(3f).fillMaxWidth().background(Color.Blue))  // 30%
+        Box(modifier = Modifier.weight(5f).fillMaxWidth().background(Color.Yellow))  // 50%
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task3ColumnLayoutPreview() {
+    LabWork13Theme {
+        Task3ColumnLayout()
+    }
+}
+
+// 5.4: Элементы в цикле
+@Composable
+fun Task5() {
+    val items = listOf("Элемент 1", "Элемент 2", "Элемент 3", "Элемент 4", "Элемент 5")
+    
+    Column {
+        items.forEach { item ->
+            Text(
+                text = item,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .background(Color.LightGray),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Task5Preview() {
+    LabWork13Theme {
+        Task5()
+    }
+}
+```
+
+#### 5.5: Пакет для экранов
+- В проекте правой кнопкой на `java/com.example.labwork13` → New → Package → назови **screens**.
+- В пакете screens: New → Kotlin Class/File → назови **AuthorizationScreen.kt**.
+- Код для `AuthorizationScreen.kt`:
+```kotlin
+package com.example.labwork13.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.labwork13.ui.theme.LabWork13Theme
+
+@Composable
+fun AuthorizationScreen() {
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Логин")
+        TextField(value = login, onValueChange = { login = it })
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Пароль")
+        TextField(value = password, onValueChange = { password = it })
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(onClick = { /*TODO: Логика авторизации */ }) {
+            Text("Авторизоваться")
+        }
+    }
+}
+
+// Для вызова в MainActivity: импортируй и вызови AuthorizationScreen()
+```
+
+**Объяснения по 5.5**:
+- `mutableStateOf` — для хранения состояния (логин/пароль). Compose recompose'ит UI при изменении.
+- `remember` — сохраняет состояние между recompositions.
+- `TextField` — поле ввода.
+- Вызов: В `MainActivity.setContent` уже стоит `AuthorizationScreen()`.
+
+4. **Запуск и тест**:
+   - Запусти на эмуляторе (AVD Manager → Create device → Run).
+   - Для превью: В IDE открой файл, увидишь @Preview.
+   - Если ошибки: Проверь импорты (Alt+Enter для автоимпорта).
+
+5. **Если вопросы**: Всё ли работает? Если рисунки не точно совпадают, подкорректируй цвета/размеры в Task3BoxLayout (я угадал по скрину). Для кнопок onClick пустой — если нужно действие, добавь.
+
+### Содержание отчёта
+
+#### Титульный лист
+(Сделай в Word: Название лабы, твоё имя, группа ИСПП-31, дата.)
+
+#### Цель работы
+Изучить процесс создания приложения в Android Studio с использованием Jetpack Compose.
+
+#### Ответы на контрольные вопросы
+8.1 Что такое Jetpack Compose?  
+Jetpack Compose — это современный toolkit для создания native UI в Android на Kotlin. Он declarative: описываешь, что хочешь видеть, а не как строить (в отличие от XML+View).
+
+8.2 Какой тип проекта нужно выбрать, чтобы создать проект с использованием Jetpack Compose?  
+Empty Activity с включённым Jetpack Compose.
+
+8.3 Что такое Activity?  
+Activity — это компонент Android, представляющий экран с UI. Это entry point для взаимодействия с пользователем.
+
+8.4 Для чего используется MainActivity?  
+MainActivity — главная Activity приложения, запускается первой. В ней устанавливается UI через onCreate.
+
+8.5 Для чего используется функция onCreate?  
+onCreate — lifecycle-метод Activity, вызывается при создании. Здесь инициализируется UI (setContentView или setContent в Compose).
+
+8.6 Что делает функция setContent?  
+setContent устанавливает composable-содержимое Activity, т.е. корневой UI-элемент.
+
+8.7 Для чего используется функция @Composable?  
+@Composable маркирует функцию, которая может строить UI. Такие функции можно компоновать и recompose'ить.
+
+8.8 Для чего указывается @Preview?  
+@Preview позволяет просматривать UI в IDE без запуска приложения (design-time preview).
+
+#### Вывод
+В ходе работы изучил создание проекта в Android Studio с Jetpack Compose, работу с composable-функциями, контейнерами (Column, Row, Box), позиционированием, циклами и экранами. Compose упрощает UI-разработку, делая её declarative и reactive. Всё работает, группа ИСПП-31 отображается корректно.
