@@ -1,0 +1,112 @@
+package com.example.labwork14
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.labwork14.ui.theme.LabWork14Theme
+
+class MainActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // 5.3.3 Реализован вызов функции (комментарий KDoc отображается при наборе)
+        val result = divide(10.0, 2.0)
+
+        setContent {
+            LabWork14Theme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Greeting("Android")
+                }
+            }
+        }
+    }
+
+    /**
+     * Вычисляет результат деления двух чисел.
+     *
+     * @param a делимое
+     * @param b делитель
+     * @return результат деления a / b
+     * @throws ArithmeticException при попытке деления на 0
+     * @author Шубина А.С., Давудова Д.И.
+     * @since 2026
+     * @sample divide(10.0, 2.0)
+     */
+    private fun divide(a: Double, b: Double): Double {
+        if (b == 0.0) {
+            throw ArithmeticException("Деление на ноль невозможно")
+        }
+        return a / b
+    }
+}
+
+/**
+ * Composable-функция приветствия.
+ *
+ * @param name имя для отображения
+ * @param modifier модификатор
+ * @author Шубина А.С., Давудова Д.И.
+ * @since 2026
+ * @sample Greeting("Android")
+ */
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Text(
+        text = "Hello $name!",
+        modifier = modifier
+    )
+}
+
+/**
+ * Предпросмотр функции Greeting.
+ *
+ * @author Шубина А.С., Давудова Д.И.
+ * @since 2026
+ * @sample GreetingPreview()
+ */
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    LabWork14Theme {
+        Greeting("Android")
+    }
+}
+
+/**
+ * Data class для хранения логина и пароля пользователя.
+ * Логин и пароль объявлены в основном конструкторе.
+ *
+ * @param login логин пользователя
+ * @param password пароль пользователя
+ * @property login логин
+ * @property password пароль
+ * @author Шубина А.С., Давудова Д.И.
+ * @since 2026
+ * @sample User("user", "pass123")
+ */
+data class User(val login: String, val password: String) {
+
+    /**
+     * Проверяет совпадение переданного пароля с паролем пользователя.
+     *
+     * @param inputPassword проверяемый пароль
+     * @return true — если пароли совпадают, false — иначе
+     * @author Шубина А.С., Давудова Д.И.
+     * @since 2026
+     * @sample User("user", "pass123").checkPassword("pass123")
+     */
+    fun checkPassword(inputPassword: String): Boolean {
+        return inputPassword == password
+    }
+}
