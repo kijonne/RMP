@@ -1,42 +1,3 @@
-package your.package.name  // ← свой пакет
-
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.*
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import your.package.name.ui.theme.CustomFontFamily
-import java.util.*
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = colorResource(R.color.background)
-                ) {
-                    LabScreen()
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun LabScreen() {
     val scrollState = rememberScrollState()
@@ -48,20 +9,23 @@ fun LabScreen() {
 
     val developers = stringArrayResource(R.array.developers)
 
+    // Правильное получение plurals с подстановкой %d
+    val hoursText = pluralStringResource(R.plurals.hours, hour, hour)
+    val minutesText = pluralStringResource(R.plurals.minutes, minute, minute)
+
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // Верхняя панель (не скроллится)
+        // Верхняя панель — фиксированная
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(dimensionResource(R.dimen.padding_standard)),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.titleLarge.copy(fontFamily = CustomFontFamily),
-                color = colorResource(R.color.text)
+                modifier = Modifier.weight(1f)  // ← название занимает место слева
             )
 
             TextField(
@@ -69,11 +33,11 @@ fun LabScreen() {
                 onValueChange = {},
                 placeholder = { Text(stringResource(R.string.search)) },
                 modifier = Modifier
-                    .weight(1f)
-                    .height(dimensionResource(R.dimen.search_height)),
+                    .weight(3f)           // ← поле поиска шире (или .fillMaxWidth(0.6f))
+                    .height(dimensionResource(R.dimen.search_height))
+                    .padding(horizontal = 8.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = colorResource(R.color.search_background),
-                    unfocusedContainerColor = colorResource(R.color.search_background)
+                    unfocusedContainerColor = colorResource(R.color.search_bg)
                 )
             )
 
@@ -90,36 +54,24 @@ fun LabScreen() {
             }
         }
 
-        // Основной контент со скроллом
+        // Скроллируемый контент
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(scrollState)
-                .padding(dimensionResource(R.dimen.padding_standard)),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Разработчики + копирайт
-            developers.forEach { dev ->
-                Text(
-                    text = stringResource(R.string.copyright, dev, year),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = CustomFontFamily),
-                    color = colorResource(R.color.text)
-                )
-            }
-
-            // Текущее время с plurals
-            val hoursText = pluralStringResource(R.plurals.hours, hour)
-            val minutesText = pluralStringResource(R.plurals.minutes, minute)
+            // Текущее время (теперь без %d)
             Text(
                 text = "$hour $hoursText $minute $minutesText",
                 style = MaterialTheme.typography.headlineMedium.copy(fontFamily = CustomFontFamily),
                 color = colorResource(R.color.primary)
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(32.dp))
 
-            // Векторная иконка (cat.svg → cat.xml)
             Text("Векторная иконка (SVG → XML)", fontFamily = CustomFontFamily)
             Image(
                 painter = painterResource(R.drawable.cat),
@@ -130,9 +82,8 @@ fun LabScreen() {
                 colorFilter = ColorFilter.tint(colorResource(R.color.primary))
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(40.dp))
 
-            // Растровое изображение (cat.png) круглое
             Text("Растровое изображение (PNG) — круглое", fontFamily = CustomFontFamily)
             Image(
                 painter = painterResource(R.drawable.cat),
@@ -142,10 +93,15 @@ fun LabScreen() {
                     .clip(CircleShape)
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.weight(1f))  // ← толкает копирайт вниз
 
-            Button(onClick = {}) {
-                Text("Пример кнопки", fontFamily = CustomFontFamily)
+            // Копирайт в самом низу (для каждого разработчика)
+            developers.forEach { dev ->
+                Text(
+                    text = stringResource(R.string.copyright, dev, year),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = CustomFontFamily),
+                    color = colorResource(R.color.text)
+                )
             }
 
             Text(
