@@ -1,0 +1,294 @@
+Вот **полная реализация всех заданий** лабораторной работы №16 (раздел 5).  
+Я сделал всё строго по требованиям: ресурсы с русской и английской локализацией, общий макет, форматированные строки, plurals, массив строк, цвета, размеры, векторное и растровое изображение, кастомный шрифт.
+
+### 1. Ресурсы (res/values и локализации)
+
+**res/values/strings.xml** (по умолчанию — русский)
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Лабораторная 16</string>
+    <string name="search">Поиск</string>
+    <string name="menu">Меню</string>
+    <string name="copyright">© %1$s. Все права защищены. %2$d</string>
+
+    <string-array name="developers">
+        <item>Маломан Ю.С.</item>
+        <item>Садовский Р.В.</item>
+    </string-array>
+</resources>
+```
+
+**res/values-en/strings.xml** (английская локализация)
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lab 16</string>
+    <string name="search">Search</string>
+    <string name="menu">Menu</string>
+    <string name="copyright">© %1$s. All rights reserved. %2$d</string>
+
+    <string-array name="developers">
+        <item>Maloman Y.S.</item>
+        <item>Sadovsky R.V.</item>
+    </string-array>
+</resources>
+```
+
+**res/values/plurals.xml**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="hours">
+        <item quantity="one">час</item>
+        <item quantity="few">часа</item>
+        <item quantity="many">часов</item>
+        <item quantity="other">часов</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">минута</item>
+        <item quantity="few">минуты</item>
+        <item quantity="many">минут</item>
+        <item quantity="other">минут</item>
+    </plurals>
+</resources>
+```
+
+**res/values-en/plurals.xml**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+</resources>
+```
+
+**res/values/colors.xml** (5 цветов)
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#F5F5F5</color>
+    <color name="primary">#6200EE</color>
+    <color name="accent">#03DAC5</color>
+    <color name="text">#1C1B1F</color>
+    <color name="search_bg">#E8E8E8</color>
+</resources>
+```
+
+**res/values/dimens.xml**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="search_height">56dp</dimen>
+    <dimen name="menu_button_size">48dp</dimen>
+    <dimen name="image_size">120dp</dimen>
+    <dimen name="vector_icon_size">48dp</dimen>
+</resources>
+```
+
+### 2. Изображения и шрифт
+
+**Векторная иконка (монохромная)**  
+Создайте файл `res/drawable/ic_menu.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#000000"
+        android:pathData="M3,18h18v-2H3V18zM3,13h18v-2H3V13zM3,6v2h18V6H3z"/>
+</vector>
+```
+
+**Растровое изображение**  
+Скачайте любое изображение (например, логотип Android или любое фото) и сохраните как `raster_image.png` в `res/drawable`.
+
+**Шрифт**  
+1. Скачайте любой бесплатный шрифт (например, **Open Sans Regular** с Google Fonts).  
+2. Переименуйте в `opensans_regular.ttf`.  
+3. Положите в папку `res/font/`.
+
+**ui/theme/Type.kt** (добавьте переменную):
+```kotlin
+package com.example.lab16.ui.theme   // измените на свой пакет
+
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.example.lab16.R
+
+val CustomFontFamily = FontFamily(Font(R.font.opensans_regular))
+```
+
+### 3. Главный экран (MainActivity.kt + Composable)
+
+```kotlin
+package com.example.lab16
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.*
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import com.example.lab16.ui.theme.CustomFontFamily
+import java.util.Calendar
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            Lab16Screen()
+        }
+    }
+}
+
+@Composable
+fun Lab16Screen() {
+    val scrollState = rememberScrollState()
+
+    // Получаем текущее время (как указано в задании)
+    val c = Calendar.getInstance()
+    val hour = c.get(Calendar.HOUR_OF_DAY)
+    val minute = c.get(Calendar.MINUTE)
+    val year = c.get(Calendar.YEAR)
+
+    val developers = stringArrayResource(R.array.developers)
+
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        // === Верхняя часть (не скроллится) ===
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge.copy(fontFamily = CustomFontFamily),
+                color = colorResource(R.color.text)
+            )
+
+            TextField(
+                value = "",
+                onValueChange = {},
+                placeholder = { Text(stringResource(R.string.search)) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
+                    .height(dimensionResource(R.dimen.search_height)),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = colorResource(R.color.search_bg)
+                )
+            )
+
+            IconButton(
+                onClick = { /* меню */ },
+                modifier = Modifier.size(dimensionResource(R.dimen.menu_button_size))
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_menu),
+                    contentDescription = stringResource(R.string.menu),
+                    tint = colorResource(R.color.primary),
+                    modifier = Modifier.size(dimensionResource(R.dimen.vector_icon_size))
+                )
+            }
+        }
+
+        // === Скроллируемая панель контента ===
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // 5.2.5 Форматированная строка + массив разработчиков
+            developers.forEach { dev ->
+                Text(
+                    text = stringResource(R.string.copyright, dev, year),
+                    style = TextStyle(fontFamily = CustomFontFamily),
+                    color = colorResource(R.color.text)
+                )
+            }
+
+            // 5.2.6 Текущее время с plurals
+            val hoursStr = pluralStringResource(R.plurals.hours, hour)
+            val minutesStr = pluralStringResource(R.plurals.minutes, minute)
+            Text(
+                text = "$hour $hoursStr $minute $minutesStr",
+                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = CustomFontFamily),
+                color = colorResource(R.color.primary)
+            )
+
+            // 5.4.2 Векторное изображение (размер + цвет)
+            Image(
+                painter = painterResource(R.drawable.ic_menu),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(dimensionResource(R.dimen.image_size))
+                    .background(colorResource(R.color.accent)),
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(colorResource(R.color.primary))
+            )
+
+            // 5.4.4 Растровое изображение (размер + обрезка кругом)
+            Image(
+                painter = painterResource(R.drawable.raster_image),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(dimensionResource(R.dimen.image_size))
+                    .clip(CircleShape)
+            )
+
+            // Пример кнопки и текста с кастомным шрифтом и цветами
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary))
+            ) {
+                Text("Кнопка с кастомным шрифтом", fontFamily = CustomFontFamily)
+            }
+
+            Text(
+                text = "Фон и текст используют ресурсы цветов",
+                color = colorResource(R.color.text),
+                fontFamily = CustomFontFamily
+            )
+        }
+    }
+}
+```
+
+### Что сделано:
+- Все строковые ресурсы + локализация (ru/en)  
+- Форматированная строка и plurals (ru/en)  
+- Массив разработчиков  
+- 5 ресурсов цветов (фон, текст, кнопки, поиск)  
+- Ресурсы размеров (высота поиска, кнопка меню, изображения)  
+- Векторная иконка (монохромная) с tint  
+- Растровое изображение обрезано кругом  
+- Кастомный шрифт в `Type.kt` и используется везде  
+- Макет: верхняя часть фиксирована, остальное — прокрутка  
+
+Скопируйте код, добавьте файлы изображений и шрифт — приложение готово.  
+Если нужно, могу добавить скриншоты отчёта или ответы на контрольные вопросы. Удачи с лабораторной! 🚀
