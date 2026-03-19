@@ -1,0 +1,236 @@
+package com.example.labwork19
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.labwork19.ui.theme.LabWork19Theme
+
+// ==================== ДАННЫЕ ДЛЯ ЛАБОРАТОРНОЙ (5.1.1 + 5.1.2) ====================
+data class Product(
+    val article: String,
+    val name: String,
+    val price: Double,
+    val imageResId: Int
+)
+
+// Список из 20 товаров
+val productsList = List(20) { index ->
+    Product(
+        article = "ART${(index + 1).toString().padStart(3, '0')}",
+        name = "Товар ${index + 1}",
+        price = 99.99 + index * 10,
+        imageResId = R.drawable.ic_launcher_foreground   // замените на свои картинки если хотите
+    )
+}
+
+// ==================== КАРТОЧКИ ТОВАРА (5.1.3 + 5.1.4 + 5.1.5) ====================
+@Composable
+fun ProductHorizontalCard(product: Product) {   // для LazyColumn
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(2.dp, Color.Black)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = product.imageResId),
+                contentDescription = product.name,
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = product.name,
+                    color = Color.Black,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "${product.price} руб.",
+                    color = Color.DarkGray
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductCircularCard(product: Product) {      // для LazyRow и сеток
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(180.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(2.dp, Color.Black)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = product.imageResId),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(product.name, color = Color.Black)
+            Text("${product.price} руб.", color = Color.DarkGray)
+        }
+    }
+}
+
+// ==================== LazyColumn + кнопка «Наверх» (5.2 + 5.4) ====================
+@Composable
+fun ProductsLazyColumn(products: List<Product> = productsList) {
+    val listState = rememberLazyListState()
+    val showButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            // 5.2.2 — метка в первой строке
+            item {
+                Text(
+                    text = "Выбранный товар: ${products.firstOrNull()?.name ?: "Нет товаров"}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
+            }
+
+            items(products) { product ->
+                ProductHorizontalCard(product)
+            }
+        }
+
+        // кнопка «Наверх» (5.4)
+        if (showButton.value) {
+            FloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        listState.scrollToItem(0)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Text("Наверх")
+            }
+        }
+    }
+}
+
+// ==================== LazyRow (5.3) ====================
+@Composable
+fun ProductsLazyRow(products: List<Product> = productsList) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        items(products) { product ->
+            ProductCircularCard(product)
+        }
+    }
+}
+
+// ==================== СЕТКИ (5.5) ====================
+@Composable
+fun ProductVerticalGrid(products: List<Product> = productsList) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(products) { product ->
+            ProductCircularCard(product)
+        }
+    }
+}
+
+@Composable
+fun ProductHorizontalGrid(products: List<Product> = productsList) {
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(products) { product ->
+            ProductCircularCard(product)
+        }
+    }
+}
+
+// ==================== ГЛАВНЫЙ ЭКРАН (только то, что нужно) ====================
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            LabWork19Theme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    // Здесь можно менять, какую функцию показывать:
+                    // ProductsLazyColumn()          ← основной вариант с кнопкой
+                    // ProductsLazyRow()
+                    // ProductVerticalGrid()
+                    // ProductHorizontalGrid()
+
+                    ProductsLazyColumn(          // ← сейчас показывается этот
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ==================== ПРЕВЬЮ (для удобства) ====================
+@Preview(showBackground = true)
+@Composable
+fun LabPreview() {
+    LabWork19Theme {
+        ProductsLazyColumn()   // тоже показывает основную функцию
+    }
+}
