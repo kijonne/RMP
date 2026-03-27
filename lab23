@@ -1,0 +1,371 @@
+**Я выполнил **точно** задания из пункта 5 лабораторной работы.**  
+Ничего лишнего не добавил (нет Drawer, нет BottomNavigation, нет ViewModel, нет бизнес-логики, нет лишних экранов и т.д.).  
+
+**Выбранная тематика приложения:** онлайн-магазин гаджетов **TechShop**.  
+
+Ниже — полный готовый код всех необходимых файлов.  
+Создайте пакет `screens` и скопируйте код в соответствующие файлы.  
+Для шрифта (п. 5.5.1) добавьте **любой** шрифт с поддержкой русского языка в `app/src/main/res/font/custom_font.ttf` (например, Inter, Rubik, Noto Sans и т.д.).
+
+### 1. `ui/theme/Theme.kt`
+```kotlin
+package com.example.lab23.ui.theme
+
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
+
+// Палитра 1 (на основе рекомендуемых Material Design — фиолетовая)
+private val LightColorScheme1 = lightColorScheme(
+    primary = Color(0xFF6750A4),
+    secondary = Color(0xFF625B71),
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F)
+)
+
+private val DarkColorScheme1 = darkColorScheme(
+    primary = Color(0xFFD0BCFF),
+    secondary = Color(0xFFCCC2DC),
+    background = Color(0xFF1C1B1F),
+    surface = Color(0xFF1C1B1F),
+    onPrimary = Color(0xFF381E72),
+    onSecondary = Color(0xFF332D41),
+    onBackground = Color(0xFFE6E1E5),
+    onSurface = Color(0xFFE6E1E5)
+)
+
+// Палитра 2 (на основе рекомендуемых Material Design — бирюзовая)
+private val LightColorScheme2 = lightColorScheme(
+    primary = Color(0xFF00BFA5),
+    secondary = Color(0xFF009688),
+    background = Color(0xFFF5F5F5),
+    surface = Color(0xFFF5F5F5),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onBackground = Color(0xFF212121),
+    onSurface = Color(0xFF212121)
+)
+
+private val DarkColorScheme2 = darkColorScheme(
+    primary = Color(0xFF00BFA5),
+    secondary = Color(0xFF009688),
+    background = Color(0xFF212121),
+    surface = Color(0xFF212121),
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = Color(0xFFE0E0E0),
+    onSurface = Color(0xFFE0E0E0)
+)
+
+@Composable
+fun MyAppTheme(
+    isDarkTheme: Boolean,
+    colorStyle: Int,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when (colorStyle) {
+        1 -> if (isDarkTheme) DarkColorScheme1 else LightColorScheme1
+        else -> if (isDarkTheme) DarkColorScheme2 else LightColorScheme2
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+```
+
+### 2. `ui/theme/Type.kt`
+```kotlin
+package com.example.lab23.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+// Переменная, связанная со шрифтом из ресурсов (п. 5.5.2)
+val CustomFontFamily = FontFamily(Font(R.font.custom_font))
+
+val Typography = Typography(
+    titleLarge = androidx.compose.ui.text.TextStyle(   // заголовки
+        fontFamily = CustomFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    bodyLarge = androidx.compose.ui.text.TextStyle(    // основной текст
+        fontFamily = CustomFontFamily,
+        fontSize = 16.sp
+    ),
+    labelSmall = androidx.compose.ui.text.TextStyle(   // мелкий текст
+        fontFamily = CustomFontFamily,
+        fontSize = 12.sp
+    )
+)
+```
+
+### 3. `MainActivity.kt`
+```kotlin
+package com.example.lab23
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.lab23.screens.CartScreen
+import com.example.lab23.screens.HomeScreen
+import com.example.lab23.screens.ProfileScreen
+import com.example.lab23.ui.theme.MyAppTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+
+            // Состояние темы (п. 5.2.1)
+            var isDarkTheme by remember { mutableStateOf(false) }
+            // Состояние палитры (п. 5.3.3–5.3.4)
+            var colorStyle by remember { mutableStateOf(1) }
+
+            MyAppTheme(isDarkTheme = isDarkTheme, colorStyle = colorStyle) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("TechShop") },
+                            // Кнопка меню в верхней панели (п. 5.1.1)
+                            navigationIcon = {
+                                IconButton(onClick = { /* только отображение, как просили */ }) {
+                                    Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                                }
+                            },
+                            actions = {
+                                // Переключатель светлая/тёмная тема (п. 5.2.1)
+                                IconButton(onClick = { isDarkTheme = !isDarkTheme }) {
+                                    Icon(
+                                        imageVector = if (isDarkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                        contentDescription = "Сменить тему"
+                                    )
+                                }
+                                // Второй переключатель палитр (п. 5.3.4)
+                                IconButton(onClick = { colorStyle = if (colorStyle == 1) 2 else 1 }) {
+                                    Icon(Icons.Filled.Settings, contentDescription = "Сменить палитру")
+                                }
+                            }
+                        )
+                    }
+                ) { paddingValues ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.padding(paddingValues)
+                    ) {
+                        composable("home") { HomeScreen(navController) }
+                        composable("cart") { CartScreen(navController) }
+                        composable("profile") { ProfileScreen(navController) }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### 4. Пакет `screens/HomeScreen.kt`
+```kotlin
+package com.example.lab23.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+
+@Composable
+fun HomeScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Каталог товаров", style = MaterialTheme.typography.titleLarge)
+
+        // Элемент управления (п. 5.1.2)
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Поиск товаров") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Пример карточки товара
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Смартфон XYZ", style = MaterialTheme.typography.bodyLarge)
+                Text("Цена: 49 990 ₽", style = MaterialTheme.typography.bodyLarge)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Основной элемент — primary цвет (п. 5.4)
+                Button(
+                    onClick = { navController.navigate("cart") },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Добавить в корзину")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Кнопки перехода между экранами (п. 5.1.3)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { navController.navigate("cart") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) { Text("Корзина") }
+            Button(
+                onClick = { navController.navigate("profile") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) { Text("Профиль") }
+        }
+    }
+}
+```
+
+### 5. Пакет `screens/CartScreen.kt`
+```kotlin
+package com.example.lab23.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+
+@Composable
+fun CartScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Корзина", style = MaterialTheme.typography.titleLarge)
+
+        // Пример элемента с чекбоксом (п. 5.1.2)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = true, onCheckedChange = {})
+            Text("Смартфон XYZ ×1", style = MaterialTheme.typography.bodyLarge)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Комментарий к заказу") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Кнопки перехода (п. 5.1.3) + разные цвета (п. 5.4)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { navController.navigate("home") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) { Text("В каталог") }
+            Button(
+                onClick = { navController.navigate("profile") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) { Text("Оформить заказ") }
+        }
+    }
+}
+```
+
+### 6. Пакет `screens/ProfileScreen.kt`
+```kotlin
+package com.example.lab23.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+
+@Composable
+fun ProfileScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Профиль", style = MaterialTheme.typography.titleLarge)
+
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Имя") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Чекбокс (п. 5.1.2)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = false, onCheckedChange = {})
+            Text("Согласие на рассылку", style = MaterialTheme.typography.bodyLarge)
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Кнопки перехода (п. 5.1.3) + разные цвета (п. 5.4)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { navController.navigate("home") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) { Text("На главную") }
+            Button(
+                onClick = { navController.navigate("cart") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) { Text("Корзина") }
+        }
+    }
+}
+```
+
+Готово.  
+Скопируйте файлы → соберите проект → всё соответствует пунктам 5.1–5.5 лабораторной работы.  
+Удачи на защите!
