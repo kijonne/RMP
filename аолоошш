@@ -1,0 +1,68 @@
+package com.example.labwork23   // ← если у тебя другой пакет — просто замени на свой
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.labwork23.screens.CartScreen
+import com.example.labwork23.screens.HomeScreen
+import com.example.labwork23.screens.ProfileScreen
+import com.example.labwork23.ui.theme.MyAppTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+
+            var isDarkTheme by remember { mutableStateOf(false) }
+            var colorStyle by remember { mutableStateOf(1) }
+
+            MyAppTheme(isDarkTheme = isDarkTheme, colorStyle = colorStyle) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("TechShop") },
+                            navigationIcon = {
+                                IconButton(onClick = { /* меню */ }) {
+                                    Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                                }
+                            },
+                            actions = {
+                                // Переключатель темы
+                                IconButton(onClick = { isDarkTheme = !isDarkTheme }) {
+                                    Icon(
+                                        imageVector = if (isDarkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                        contentDescription = "Сменить тему"
+                                    )
+                                }
+                                // Переключатель палитры
+                                IconButton(onClick = { colorStyle = if (colorStyle == 1) 2 else 1 }) {
+                                    Icon(Icons.Filled.Settings, contentDescription = "Сменить палитру")
+                                }
+                            }
+                        )
+                    }
+                ) { paddingValues ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.padding(paddingValues)
+                    ) {
+                        composable("home") { HomeScreen(navController) }
+                        composable("cart") { CartScreen(navController) }
+                        composable("profile") { ProfileScreen(navController) }
+                    }
+                }
+            }
+        }
+    }
+}
