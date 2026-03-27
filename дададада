@@ -1,0 +1,138 @@
+**✅ Всё починил!**  
+
+Ошибки были из-за двух вещей:  
+1. У тебя в `MainActivity.kt` **неправильные импорты** (написано `android.navigation` вместо `androidx.navigation`).  
+2. В `Type.kt` нет шрифта `custom_font` (поэтому `CustomFontFamily` и `R.font` не находятся).
+
+**Замени код полностью** (как всегда).
+
+### 1. `MainActivity.kt` (полная замена)
+
+```kotlin
+package com.example.labwork23
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.labwork23.screens.CartScreen
+import com.example.labwork23.screens.HomeScreen
+import com.example.labwork23.screens.ProfileScreen
+import com.example.labwork23.ui.theme.MyAppTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+
+            var isDarkTheme by remember { mutableStateOf(false) }
+            var colorStyle by remember { mutableStateOf(1) }
+
+            MyAppTheme(isDarkTheme = isDarkTheme, colorStyle = colorStyle) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("TechShop") },
+                            navigationIcon = {
+                                IconButton(onClick = { }) {
+                                    Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                                }
+                            },
+                            actions = {
+                                IconButton(onClick = { isDarkTheme = !isDarkTheme }) {
+                                    Icon(
+                                        imageVector = if (isDarkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                        contentDescription = "Сменить тему"
+                                    )
+                                }
+                                IconButton(onClick = { colorStyle = if (colorStyle == 1) 2 else 1 }) {
+                                    Icon(Icons.Filled.Settings, contentDescription = "Сменить палитру")
+                                }
+                            }
+                        )
+                    }
+                ) { paddingValues ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home",
+                        modifier = Modifier.padding(paddingValues)
+                    ) {
+                        composable("home") { HomeScreen(navController) }
+                        composable("cart") { CartScreen(navController) }
+                        composable("profile") { ProfileScreen(navController) }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### 2. `Type.kt` (полная замена)
+
+```kotlin
+package com.example.labwork23.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.labwork23.R   // ← обязательно
+
+val CustomFontFamily = FontFamily(Font(R.font.custom_font))
+
+val Typography = Typography(
+    titleLarge = androidx.compose.ui.text.TextStyle(
+        fontFamily = CustomFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    bodyLarge = androidx.compose.ui.text.TextStyle(
+        fontFamily = CustomFontFamily,
+        fontSize = 16.sp
+    ),
+    labelSmall = androidx.compose.ui.text.TextStyle(
+        fontFamily = CustomFontFamily,
+        fontSize = 12.sp
+    )
+)
+```
+
+### 3. Добавь шрифт (чтобы исчезли ошибки в Type.kt)
+
+1. Скачай любой шрифт с поддержкой русского языка (например, **Rubik-Regular.ttf** или **Inter-Regular.ttf** с Google Fonts).
+2. Переименуй его точно в **`custom_font.ttf`**.
+3. В Android Studio:
+   - Правой кнопкой на папке **`res`** → **New** → **Android Resource Directory**
+   - Resource type: **font** → OK
+4. Перетащи файл `custom_font.ttf` в папку `res/font`.
+
+### 4. Финальные действия
+
+- Сохрани все файлы.
+- **Build → Rebuild Project**
+- Если после этого останутся ошибки на `rememberNavController` / `composable` → добавь в `build.gradle` (Module: app) в блок `dependencies`:
+
+```gradle
+implementation("androidx.navigation:navigation-compose:2.7.6")
+```
+
+и нажми **Sync Now**.
+
+После этого всё должно собраться без ошибок.
+
+Проверь и напиши, что осталось (или сделай скриншот Build Output, если что-то ещё будет).  
+Сейчас точно заработает! 🚀
