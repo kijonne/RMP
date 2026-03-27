@@ -1,0 +1,211 @@
+**Вот ВСЁ, что тебе нужно вставить. Просто копируй и вставляй по очереди.**
+
+### 1. HomeScreen.kt — в самый конец файла (замени старые превью полностью)
+
+```kotlin
+// ====================== ПРЕВЬЮ ======================
+@Preview(showBackground = true, showSystemUi = true, name = "Home Light Palette 1")
+@Composable
+fun HomePreviewLight1() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 1) {
+        val navController = rememberNavController()
+        HomeScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Home Dark Palette 1")
+@Composable
+fun HomePreviewDark1() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 1) {
+        val navController = rememberNavController()
+        HomeScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Home Light Palette 2")
+@Composable
+fun HomePreviewLight2() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 2) {
+        val navController = rememberNavController()
+        HomeScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Home Dark Palette 2")
+@Composable
+fun HomePreviewDark2() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 2) {
+        val navController = rememberNavController()
+        HomeScreen(navController)
+    }
+}
+```
+
+### 2. CartScreen.kt — в самый конец файла (замени старые превью)
+
+```kotlin
+// ====================== ПРЕВЬЮ ======================
+@Preview(showBackground = true, showSystemUi = true, name = "Cart Light Palette 1")
+@Composable
+fun CartPreviewLight1() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 1) {
+        val navController = rememberNavController()
+        CartScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Cart Dark Palette 1")
+@Composable
+fun CartPreviewDark1() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 1) {
+        val navController = rememberNavController()
+        CartScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Cart Light Palette 2")
+@Composable
+fun CartPreviewLight2() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 2) {
+        val navController = rememberNavController()
+        CartScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Cart Dark Palette 2")
+@Composable
+fun CartPreviewDark2() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 2) {
+        val navController = rememberNavController()
+        CartScreen(navController)
+    }
+}
+```
+
+### 3. ProfileScreen.kt — в самый конец файла (замени старые превью)
+
+```kotlin
+// ====================== ПРЕВЬЮ ======================
+@Preview(showBackground = true, showSystemUi = true, name = "Profile Light Palette 1")
+@Composable
+fun ProfilePreviewLight1() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 1) {
+        val navController = rememberNavController()
+        ProfileScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Profile Dark Palette 1")
+@Composable
+fun ProfilePreviewDark1() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 1) {
+        val navController = rememberNavController()
+        ProfileScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Profile Light Palette 2")
+@Composable
+fun ProfilePreviewLight2() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 2) {
+        val navController = rememberNavController()
+        ProfileScreen(navController)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Profile Dark Palette 2")
+@Composable
+fun ProfilePreviewDark2() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 2) {
+        val navController = rememberNavController()
+        ProfileScreen(navController)
+    }
+}
+```
+
+### 4. MainActivity.kt — в самый конец файла (после закрывающей скобки класса MainActivity)
+
+```kotlin
+// ====================== ПРЕВЬЮ ВСЕГО ПРИЛОЖЕНИЯ ======================
+@Preview(showBackground = true, showSystemUi = true, name = "Full App - Light Palette 1")
+@Composable
+fun FullAppPreviewLight1() {
+    LabWork23Theme(isDarkTheme = false, colorStyle = 1) {
+        val navController = rememberNavController()
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("TechShop") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.LightMode, contentDescription = "Тема")
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Палитра")
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("home") { HomeScreen(navController) }
+                composable("cart") { CartScreen(navController) }
+                composable("profile") { ProfileScreen(navController) }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Full App - Dark Palette 1")
+@Composable
+fun FullAppPreviewDark1() {
+    LabWork23Theme(isDarkTheme = true, colorStyle = 1) {
+        val navController = rememberNavController()
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("TechShop") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.DarkMode, contentDescription = "Тема")
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Палитра")
+                        }
+                    }
+                )
+            }
+        ) { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("home") { HomeScreen(navController) }
+                composable("cart") { CartScreen(navController) }
+                composable("profile") { ProfileScreen(navController) }
+            }
+        }
+    }
+}
+```
+
+**Готово.**  
+Вставила всё → сохрани → **Build → Rebuild Project**.  
+В Compose Preview теперь будет 4+4+4 превью (экраны + полное приложение).
+
+Если после Rebuild что-то красное — кинь скрин.
