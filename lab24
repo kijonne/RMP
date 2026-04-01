@@ -1,0 +1,330 @@
+package com.example.labwork24
+
+import android.net.Uri
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            LabWork24App()
+        }
+    }
+}
+
+@Composable
+fun LabWork24App() {
+    val navController = rememberNavController()
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "eula",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("eula") { EulaScreen() }
+            composable("register") { RegisterScreen() }
+            composable("notes") { NotesScreen() }
+            composable("external") { ExternalFilesScreen() }
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavHostController) {
+    val items = listOf(
+        BottomNavItem("eula", "EULA", "📜"),
+        BottomNavItem("register", "Регистрация", "🔑"),
+        BottomNavItem("notes", "Заметки", "📝"),
+        BottomNavItem("external", "Файлы", "📂")
+    )
+
+    NavigationBar {
+        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = { navController.navigate(item.route) },
+                icon = { Text(item.icon, style = MaterialTheme.typography.titleLarge) },
+                label = { Text(item.label) }
+            )
+        }
+    }
+}
+
+data class BottomNavItem(val route: String, val label: String, val icon: String)
+
+// ==================== ЭКРАН 5.1 — EULA ====================
+@Composable
+fun EulaScreen() {
+    val context = LocalContext.current
+    var eulaText by remember { mutableStateOf("Загрузка лицензии...") }
+    var isChecked by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        try {
+            context.assets.open("eula.txt").bufferedReader().use {
+                eulaText = it.readText()
+            }
+        } catch (e: Exception) {
+            eulaText = "Ошибка чтения eula.txt"
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("Лицензионное соглашение", style = MaterialTheme.typography.headlineMedium)
+
+        Text(
+            text = eulaText,
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp)
+        )
+
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
+                Text("Я прочитал условия лицензионного соглашения")
+            }
+
+            Button(
+                onClick = { /* можно показать тост "Принято" */ },
+                enabled = isChecked,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Принять")
+            }
+        }
+    }
+}
+
+// ==================== ЭКРАН 5.2 — Регистрация ====================
+@Composable
+fun RegisterScreen() {
+    val context = LocalContext.current
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+    val weakPasswords = remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val lines = context.assets.open("weak_passwords.txt")
+                .bufferedReader()
+                .readLines()
+            weakPasswords.value = lines.map { it.trim() }.toSet()
+        } catch (e: Exception) {
+            message = "Ошибка загрузки слабых паролей"
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        TextField(
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        TextField(
+            value = password,
+            onValueChange = {
+                password = it
+                message = if (weakPasswords.value.contains(it)) {
+                    "⚠️ Пароль ненадёжный! Выберите другой."
+                } else if (it.length >= 8) {
+                    "✅ Пароль хороший"
+                } else ""
+            },
+            label = { Text("Пароль") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (message.isNotEmpty()) {
+            Text(
+                text = message,
+                color = if (message.contains("ненадёжный")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Button(onClick = { /* регистрация */ }, modifier = Modifier.fillMaxWidth()) {
+            Text("Зарегистрироваться")
+        }
+    }
+}
+
+// ==================== ЭКРАН 5.3 + 5.4 — Заметки ====================
+@Composable
+fun NotesScreen() {
+    val context = LocalContext.current
+    var title by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+    var notesList by remember { mutableStateOf(listOf<File>()) }
+
+    val notesDir = File(context.filesDir, "notes").apply { mkdirs() }
+
+    fun loadNotes() {
+        notesList = notesDir.listFiles()?.sortedBy { it.lastModified() }?.toList() ?: emptyList()
+    }
+
+    LaunchedEffect(Unit) { loadNotes() }
+
+    fun saveNote() {
+        if (title.isBlank()) return
+        val file = File(notesDir, "$title.txt")
+        file.writeText(content)
+        title = ""
+        content = ""
+        loadNotes()
+    }
+
+    fun deleteNote(file: File) {
+        file.delete()
+        loadNotes()
+    }
+
+    fun loadNote(file: File) {
+        title = file.nameWithoutExtension
+        content = file.readText()
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        TextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Название заметки") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        TextField(
+            value = content,
+            onValueChange = { content = it },
+            label = { Text("Текст заметки") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+        )
+
+        Button(onClick = ::saveNote, modifier = Modifier.fillMaxWidth()) {
+            Text("Сохранить заметку")
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Text("Сохранённые заметки:", style = MaterialTheme.typography.titleMedium)
+
+        LazyColumn {
+            items(notesList) { file ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { loadNote(file) }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(file.nameWithoutExtension, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { deleteNote(file) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== ЭКРАН 5.5 — Внешние файлы ====================
+@Composable
+fun ExternalFilesScreen() {
+    val context = LocalContext.current
+    var textContent by remember { mutableStateOf("") }
+
+    val openLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            context.contentResolver.openInputStream(it)?.use { stream ->
+                textContent = BufferedReader(InputStreamReader(stream)).readText()
+            }
+        }
+    }
+
+    val saveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri: Uri? ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.use { stream ->
+                stream.write(textContent.toByteArray())
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        TextField(
+            value = textContent,
+            onValueChange = { textContent = it },
+            label = { Text("Содержимое файла") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { openLauncher.launch("text/plain") },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Открыть файл")
+            }
+
+            Button(
+                onClick = { saveLauncher.launch("note_${System.currentTimeMillis()}.txt") },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Сохранить файл")
+            }
+        }
+    }
+}
