@@ -1,0 +1,66 @@
+fun main() {
+    // 5.1
+    println(geometricProgression(5))
+    println(geometricProgression(3, 5.0, 1.5))
+
+    // 5.2
+    println(calculateArea(5.0))
+    println(calculateArea(3.0, 4.0))
+
+    // 5.3
+    println(calculateRange(1.0, 5.0, 3.0, 10.0, 2.0))
+    println(calculateRange(100.0))
+
+    // 5.4
+    val simpleCalc = getInterestCalculator("simple")
+    val compoundCalc = getInterestCalculator("compound")
+    println(simpleCalc(1000.0, 5.0, 3))
+    println(compoundCalc(1000.0, 5.0, 3))
+
+    // 5.5
+    val appleAdder = createShoppingCartAdder("Яблоки", 50.0)
+    val bookAdder = createShoppingCartAdder("Книги", 300.0)
+    appleAdder(3)
+    bookAdder(2)
+}
+
+/** 5.1 Геометрическая прогрессия */
+fun geometricProgression(
+    n: Int,
+    firstTerm: Double = 1.0,
+    ratio: Double = 2.0
+): Double {
+    return firstTerm * Math.pow(ratio, (n - 1).toDouble())
+}
+
+/** 5.2 Перегруженные функции */
+fun calculateArea(radius: Double): Double {
+    return Math.PI * radius * radius
+}
+
+fun calculateArea(majorSemiAxis: Double, minorSemiAxis: Double): Double {
+    return Math.PI * majorSemiAxis * minorSemiAxis
+}
+
+/** 5.3 Переменное количество аргументов */
+fun calculateRange(vararg numbers: Double): Double {
+    if (numbers.isEmpty()) return 0.0
+    return numbers.maxOrNull()!! - numbers.minOrNull()!!
+}
+
+/** 5.4 Функция высокого порядка */
+fun getInterestCalculator(type: String): (Double, Double, Int) -> Double {
+    return when (type.lowercase()) {
+        "simple" -> { s0, r, n -> s0 * (1 + r / 100 * n) }
+        "compound" -> { s0, r, n -> s0 * Math.pow(1 + r / 100, n.toDouble()) }
+        else -> throw IllegalArgumentException("Неизвестный тип")
+    }
+}
+
+/** 5.5 Функция-замыкание */
+fun createShoppingCartAdder(productName: String, unitPrice: Double): (Int) -> Unit {
+    return { quantity ->
+        val total = unitPrice * quantity
+        println("В корзину добавлен $productName на сумму $total")
+    }
+}
