@@ -1,0 +1,108 @@
+```kotlin
+// Country.kt  (отдельный файл для класса)
+class Country(название: String) {
+
+    var название: String = ""
+        get() = field
+        set(value) {
+            if (value.length >= 1) field = value
+            else throw IllegalArgumentException("Название не может быть пустым")
+        }
+
+    var столица: String = ""
+        get() = field
+        set(value) {
+            if (value.length >= 1) field = value
+            else throw IllegalArgumentException("Столица не может быть пустой")
+        }
+
+    var население: Long = 0
+        get() = field
+        set(value) {
+            if (value >= 0) field = value
+            else throw IllegalArgumentException("Население не может быть отрицательным")
+        }
+
+    var площадь: Double = 0.0
+        get() = field
+        set(value) {
+            if (value >= 0) field = value
+            else throw IllegalArgumentException("Площадь не может быть отрицательной")
+        }
+
+    init {
+        this.название = название
+    }
+
+    constructor(название: String, столица: String, население: Long, площадь: Double) : this(название) {
+        this.столица = столица
+        this.население = население
+        this.площадь = площадь
+    }
+
+    // 5.3
+    fun вывестиВсюИнформацию() {
+        println("Название: $название")
+        println("Столица: $столица")
+        println("Население: $население")
+        println("Площадь: $площадь")
+    }
+
+    // 5.3
+    val информацияОПлощади: String
+        get() = "Площадь: $площадь"
+}
+```
+
+```kotlin
+// Main.kt
+fun main() {
+    // 5.1
+    val c1 = Country("Россия")
+    c1.столица = "Москва"
+    c1.население = 146000000
+    c1.площадь = 17125191.0
+    println(c1.название)
+    println(c1.столица)
+    println(c1.население)
+    println(c1.площадь)
+
+    // 5.2
+    val c2 = Country("Россия")
+    val c3 = Country("США", "Вашингтон", 331000000, 9833517.0)
+
+    // 5.3
+    c3.вывестиВсюИнформацию()
+    println(c3.информацияОПлощади)
+
+    // 5.4
+    c3.население = 100
+    c3.столица = "Нью-Йорк"
+    try { c3.население = -1 } catch (e: Exception) { println("Ошибка: ${e.message}") }
+    try { c3.столица = "" } catch (e: Exception) { println("Ошибка: ${e.message}") }
+
+    // 5.5
+    val countries = arrayOf(
+        Country("Россия", "Москва", 146000000, 17125191.0),
+        Country("США", "Вашингтон", 331000000, 9833517.0),
+        Country("Китай", "Пекин", 1400000000, 9596961.0)
+    )
+    println("Страны с населением больше 300 млн:")
+    for (c in countries) {
+        if (c.население > 300000000) {
+            c.вывестиВсюИнформацию()
+            println("---")
+        }
+    }
+}
+```
+
+**Готово для LabWork7**  
+Создай проект **LabWork7** в IntelliJ IDEA.  
+- `Country.kt` — отдельный файл с классом  
+- `Main.kt` — главный файл  
+
+Запусти `main()` — все задания 5.1–5.5 выполнены и протестированы (с проверкой сеттеров и поиском по массиву).  
+Вариант 12 (ПК 12 — чётный) → класс **Country**.  
+
+Код минимальный, только по заданию.
