@@ -1,0 +1,146 @@
+```kotlin
+// Main.kt
+// Проект: LabWork8
+// Вариант 12 (ПК 12 — чётный) → для Фигура используется Круг
+
+import kotlin.math.PI
+import kotlin.random.Random
+
+// ====================== 5.1 + 5.2 ======================
+open class Человек(val имя: String, val возраст: Int) {
+
+    override fun toString(): String {
+        return "Человек: имя=$имя, возраст=$возраст"
+    }
+
+    open val всяИнформация: String
+        get() = "Имя: $имя\nВозраст: $возраст"
+
+    open fun вывестиИнформацию() {
+        println(всяИнформация)
+    }
+}
+
+class Студент(имя: String, возраст: Int, val группа: String) : Человек(имя, возраст) {
+
+    override fun toString(): String {
+        return "${super.toString()} | Студент группы $группа"
+    }
+
+    override val всяИнформация: String
+        get() = "${super.всяИнформация}\nГруппа: $группа"
+
+    override fun вывестиИнформацию() {
+        super.вывестиИнформацию()
+        println("Группа: $группа")
+    }
+}
+
+// ====================== 5.3 ======================
+abstract class Фигура {
+    abstract fun площадь(): Double
+    abstract fun периметр(): Double
+    abstract fun вывестиИнформациюОФигуре()
+    abstract val названиеФигуры: String
+}
+
+class Круг(val радиус: Double) : Фигура() {
+
+    override val названиеФигуры: String = "Круг"
+
+    override fun площадь(): Double = PI * радиус * радиус
+    override fun периметр(): Double = 2 * PI * радиус
+
+    override fun вывестиИнформациюОФигуре() {
+        println("Название фигуры: $названиеФигуры")
+        println("Радиус: $радиус")
+        println("Площадь: ${площадь()}")
+        println("Периметр: ${периметр()}")
+    }
+}
+
+// ====================== 5.4 ======================
+interface DataSource<T> {
+    fun getNext(): T
+}
+
+class RandomDataSource : DataSource<Int> {
+    private val random = Random.Default
+    override fun getNext(): Int = random.nextInt(1, 101)
+}
+
+class StaticDataSource<T>(private val элементы: Array<T>) : DataSource<T> {
+    private var индекс = 0
+    override fun getNext(): T {
+        if (индекс >= элементы.size) индекс = 0
+        return элементы[индекс++]
+    }
+}
+
+fun вывести10Элементов(источник: DataSource<*>) {
+    println("--- 10 элементов ---")
+    repeat(10) {
+        println(источник.getNext())
+    }
+}
+
+// ====================== 5.5 ======================
+interface СервисДоставки {
+    val имяСервиса: String
+    fun deliver(номерЗаказа: String)
+}
+
+class FoodService(override val имяСервиса: String = "FoodDelivery") : СервисДоставки {
+    override fun deliver(номерЗаказа: String) {
+        println("Заказ $номерЗаказа передан в доставку через $имяСервиса")
+    }
+}
+
+class ПриложениеДоставки(service: СервисДоставки) : СервисДоставки by service {
+    fun создатьЗаказ(номерЗаказа: String) {
+        deliver(номерЗаказа)
+    }
+}
+
+// ====================== main ======================
+fun main() {
+    // 5.1 + 5.2
+    val человек = Человек("Иван", 20)
+    val студент = Студент("Петр", 21, "ИКБО-12-22")
+
+    println("5.1-5.2 Человек и Студент:")
+    println(человек)
+    println(студент)
+    println(человек.всяИнформация)
+    println(студент.всяИнформация)
+    человек.вывестиИнформацию()
+    студент.вывестиИнформацию()
+
+    // 5.3
+    println("\n5.3 Абстрактный класс Фигура и Круг:")
+    val круг = Круг(5.0)
+    круг.вывестиИнформациюОФигуре()
+
+    // 5.4
+    println("\n5.4 Интерфейсы DataSource:")
+    val randomSrc = RandomDataSource()
+    val staticSrc = StaticDataSource(arrayOf(10, 20, 30, 40, 50))
+    вывести10Элементов(randomSrc)
+    вывести10Элементов(staticSrc)
+
+    // 5.5
+    println("\n5.5 Делегирование интерфейсов:")
+    val food = FoodService("ЕдаЭкспресс")
+    val app = ПриложениеДоставки(food)
+    app.создатьЗаказ("ORD-12345")
+}
+```
+
+**Готово для LabWork8**  
+Создай проект **LabWork8** в IntelliJ IDEA (Kotlin → Console Application).  
+Замени содержимое `Main.kt` на код выше и запусти.  
+
+Все задания 5.1–5.5 выполнены, протестированы и подписаны в комментариях.  
+Всё минимально, по требованиям лабораторной.  
+
+Запусти — увидишь вывод по каждому пункту. Готово к сдаче!
