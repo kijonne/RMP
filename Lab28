@@ -1,0 +1,527 @@
+**Готово!** Я сделал лабораторную работу **точно по заданию** (пункты 5.1–5.5), ничего лишнего не добавил.  
+Вариант **№3 — Фильмы** (Название фильма, Жанр, Год выпуска, Рейтинг 1–10).  
+Название проекта: **LabWork28**.
+
+Я написал **подробную пошаговую инструкцию**: что создать, куда положить, зачем это нужно и как это связано с требованиями лабораторной.  
+Всё реализовано с помощью **SQLiteOpenHelper** (как прямо спрашивают в контрольных вопросах 8.1–8.5).  
+Навигация сделана без дополнительных библиотек (через состояние `currentScreen`) — минимум зависимостей, как и просили.
+
+---
+
+### ШАГ 1: Создание проекта
+
+1. Открой **Android Studio**.
+2. **File → New → New Project**.
+3. Выбери **Empty Compose Activity**.
+4. Заполни:
+   - **Name**: `LabWork28`
+   - **Package name**: `com.example.labwork28` (можно любой, но дальше я буду использовать именно этот)
+   - Language: **Kotlin**
+   - Minimum SDK: 24 (или выше — как по умолчанию)
+5. Нажми **Finish**.
+
+Проект готов. Дальше работаем только внутри него.
+
+---
+
+### ШАГ 2: Создаём data class Film (п. 5.1.1)
+
+**Что делаем**: Создаём файл `Film.kt`.
+
+**Куда**: `app/src/main/java/com/example/labwork28/Film.kt`
+
+**Код**:
+
+```kotlin
+package com.example.labwork28
+
+data class Film(
+    val id: Int = 0,           // 0 для новых записей, реальный id присваивается БД
+    val title: String,         // Название фильма
+    val genre: String,         // Жанр
+    val year: Int,             // Год выпуска
+    val rating: Int            // Рейтинг 1–10
+)
+```
+
+**Зачем**: Именно этот класс хранит информацию об объекте из таблицы 1 (вариант 3). `id` нужен для редактирования и удаления записи.
+
+---
+
+### ШАГ 3: Создаём класс работы с БД (п. 5.1.2)
+
+**Что делаем**: Создаём `DatabaseHelper.kt` — наследник `SQLiteOpenHelper`.
+
+**Куда**: `app/src/main/java/com/example/labwork28/DatabaseHelper.kt`
+
+**Код**:
+
+```kotlin
+package com.example.labwork28
+
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+
+class DatabaseHelper(context: Context) : SQLiteOpenHelper(
+    context,
+    DATABASE_NAME,
+    null,
+    DATABASE_VERSION
+) {
+
+    companion object {
+        private const val DATABASE_NAME = "films.db"
+        private const val DATABASE_VERSION = 1
+        private const val TABLE_FILMS = "films"
+        private const val COLUMN_ID = "_id"
+        private const val COLUMN_TITLE = "title"
+        private const val COLUMN_GENRE = "genre"
+        private const val COLUMN_YEAR = "year"
+        private const val COLUMN_RATING = "rating"
+    }
+
+    override fun onCreate(db: SQLiteDatabase) {
+        val createTable = """
+            CREATE TABLE $TABLE_FILMS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_TITLE TEXT NOT NULL,
+                $COLUMN_GENRE TEXT NOT NULL,
+                $COLUMN_YEAR INTEGER NOT NULL,
+                $COLUMN_RATING INTEGER NOT NULL
+            )
+        """.trimIndent()
+        db.execSQL(createTable)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_FILMS")
+        onCreate(db)
+    }
+
+    // 5.2.1 — вставка данных
+    fun insertFilm(film: Film): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_TITLE, film.title)
+            put(COLUMN_GENRE, film.genre)
+            put(COLUMN_YEAR, film.year)
+            put(COLUMN_RATING, film.rating)
+        }
+        return db.insert(TABLE_FILMS, null, values)
+    }
+
+    // 5.3.1 — получение списка
+    fun getAllFilms(): List<Film> {
+        val films = mutableListOf<Film>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_FILMS, null, null, null, null, null, null)
+        with(cursor) {
+            while (moveToNext()) {
+                films.add(
+                    Film(
+                        id = getInt(getColumnIndexOrThrow(COLUMN_ID)),
+                        title = getString(getColumnIndexOrThrow(COLUMN_TITLE)),
+                        genre = getString(getColumnIndexOrThrow(COLUMN_GENRE)),
+                        year = getInt(getColumnIndexOrThrow(COLUMN_YEAR)),
+                        rating = getInt(getColumnIndexOrThrow(COLUMN_RATING))
+                    )
+                )
+            }
+        }
+        cursor.close()
+        return films
+    }
+
+    // 5.4.1 — изменение данных
+    fun updateFilm(film: Film): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_TITLE, film.title)
+            put(COLUMN_GENRE, film.genre)
+            put(COLUMN_YEAR, film.year)
+            put(COLUMN_RATING, film.rating)
+        }
+        return db.update(
+            TABLE_FILMS,
+            values,
+            "$COLUMN_ID = ?",
+            arrayOf(film.id.toString())
+        )
+    }
+
+    // 5.5.1 — удаление данных
+    fun deleteFilm(id: Int): Int {
+        val db = writableDatabase
+        return db.delete(
+            TABLE_FILMS,
+            "$COLUMN_ID = ?",
+            arrayOf(id.toString())
+        )
+    }
+}
+```
+
+**Зачем**: Один класс отвечает за всю работу с БД (создание таблицы + CRUD). Всё точно по пунктам 5.1.2, 5.2.1, 5.3.1, 5.4.1, 5.5.1.
+
+---
+
+### ШАГ 4: Реализация экранов (п. 5.2.2, 5.3.2, 5.4.2, 5.5.2)
+
+Замени весь код в `MainActivity.kt` на следующий:
+
+```kotlin
+package com.example.labwork28
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+
+sealed class Screen {
+    data object List : Screen()
+    data object Add : Screen()
+    data class Edit(val film: Film) : Screen()
+}
+
+class MainActivity : ComponentActivity() {
+
+    private lateinit var dbHelper: DatabaseHelper
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        dbHelper = DatabaseHelper(this)
+
+        setContent {
+            val films = remember { mutableStateListOf<Film>() }
+
+            // Загружаем данные один раз при старте
+            LaunchedEffect(Unit) {
+                films.clear()
+                films.addAll(dbHelper.getAllFilms())
+            }
+
+            var currentScreen by remember { mutableStateOf<Screen>(Screen.List) }
+
+            when (val screen = currentScreen) {
+                is Screen.List -> ListScreen(
+                    films = films,
+                    onAddClick = { currentScreen = Screen.Add },
+                    onEditClick = { currentScreen = Screen.Edit(it) },
+                    onDeleteClick = { id ->
+                        dbHelper.deleteFilm(id)
+                        films.removeAll { it.id == id }
+                    }
+                )
+
+                is Screen.Add -> AddScreen(
+                    onSave = { film ->
+                        val newId = dbHelper.insertFilm(film)
+                        films.add(film.copy(id = newId.toInt()))
+                        currentScreen = Screen.List
+                    },
+                    onCancel = { currentScreen = Screen.List }
+                )
+
+                is Screen.Edit -> EditScreen(
+                    film = screen.film,
+                    onSave = { updatedFilm ->
+                        dbHelper.updateFilm(updatedFilm)
+                        val index = films.indexOfFirst { it.id == updatedFilm.id }
+                        if (index != -1) films[index] = updatedFilm
+                        currentScreen = Screen.List
+                    },
+                    onCancel = { currentScreen = Screen.List }
+                )
+            }
+        }
+    }
+}
+
+// ======================= 5.3.2 — Экран списка =======================
+@Composable
+fun ListScreen(
+    films: List<Film>,
+    onAddClick: () -> Unit,
+    onEditClick: (Film) -> Unit,
+    onDeleteClick: (Int) -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Фильмы") })
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddClick) {
+                Text("+")
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(8.dp)
+        ) {
+            items(films) { film ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable { onEditClick(film) }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = film.title, style = MaterialTheme.typography.titleMedium)
+                            Text(text = "Жанр: ${film.genre}")
+                            Text(text = "Год: ${film.year}")
+                            Text(text = "Рейтинг: ${film.rating}/10")
+                        }
+                        IconButton(onClick = { onDeleteClick(film.id) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ======================= 5.2.2 — Экран добавления =======================
+@Composable
+fun AddScreen(
+    onSave: (Film) -> Unit,
+    onCancel: () -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var genre by remember { mutableStateOf("") }
+    var yearText by remember { mutableStateOf("") }
+    var ratingText by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+
+    Scaffold(topBar = { TopAppBar(title = { Text("Добавить фильм") }) }) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Название фильма") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = genre,
+                onValueChange = { genre = it },
+                label = { Text("Жанр") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = yearText,
+                onValueChange = { yearText = it },
+                label = { Text("Год выпуска") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = ratingText,
+                onValueChange = { ratingText = it },
+                label = { Text("Рейтинг (1–10)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (error.isNotEmpty()) {
+                Text(text = error, color = Color.Red)
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        // Проверка корректности (п. 5.2.2 и 5.4.2)
+                        if (title.isBlank() || genre.isBlank() || yearText.isBlank() || ratingText.isBlank()) {
+                            error = "Все поля обязательны"
+                            return@Button
+                        }
+                        val year = yearText.toIntOrNull()
+                        if (year == null || year <= 0) {
+                            error = "Год должен быть положительным числом"
+                            return@Button
+                        }
+                        val rating = ratingText.toIntOrNull()
+                        if (rating == null || rating !in 1..10) {
+                            error = "Рейтинг должен быть от 1 до 10"
+                            return@Button
+                        }
+
+                        val newFilm = Film(0, title, genre, year, rating)
+                        onSave(newFilm)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Сохранить")
+                }
+                Button(onClick = onCancel, modifier = Modifier.weight(1f)) {
+                    Text("Отмена")
+                }
+            }
+        }
+    }
+}
+
+// ======================= 5.4.2 — Экран редактирования =======================
+@Composable
+fun EditScreen(
+    film: Film,
+    onSave: (Film) -> Unit,
+    onCancel: () -> Unit
+) {
+    var title by remember { mutableStateOf(film.title) }
+    var genre by remember { mutableStateOf(film.genre) }
+    var yearText by remember { mutableStateOf(film.year.toString()) }
+    var ratingText by remember { mutableStateOf(film.rating.toString()) }
+    var error by remember { mutableStateOf("") }
+
+    Scaffold(topBar = { TopAppBar(title = { Text("Редактировать фильм") }) }) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Название фильма") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = genre,
+                onValueChange = { genre = it },
+                label = { Text("Жанр") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = yearText,
+                onValueChange = { yearText = it },
+                label = { Text("Год выпуска") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = ratingText,
+                onValueChange = { ratingText = it },
+                label = { Text("Рейтинг (1–10)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (error.isNotEmpty()) {
+                Text(text = error, color = Color.Red)
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        if (title.isBlank() || genre.isBlank() || yearText.isBlank() || ratingText.isBlank()) {
+                            error = "Все поля обязательны"
+                            return@Button
+                        }
+                        val year = yearText.toIntOrNull()
+                        if (year == null || year <= 0) {
+                            error = "Год должен быть положительным числом"
+                            return@Button
+                        }
+                        val rating = ratingText.toIntOrNull()
+                        if (rating == null || rating !in 1..10) {
+                            error = "Рейтинг должен быть от 1 до 10"
+                            return@Button
+                        }
+
+                        val updatedFilm = Film(film.id, title, genre, year, rating)
+                        onSave(updatedFilm)
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Сохранить изменения")
+                }
+                Button(onClick = onCancel, modifier = Modifier.weight(1f)) {
+                    Text("Отмена")
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+### Что получилось в итоге
+
+- Все требования пунктов 5.1–5.5 выполнены **точно**.
+- Переход на экран добавления — по кнопке FAB.
+- Переход на экран редактирования — по клику на карточку.
+- Удаление — кнопка с иконкой корзины в каждой карточке.
+- Проверка данных при сохранении (как указано в 5.2.2 и 5.4.2).
+- Ничего лишнего (нет Room, нет ViewModel, нет лишних экранов).
+
+**Запусти проект** — всё должно работать сразу.
+
+Если нужно сдать отчёт — просто скопируй код выше в раздел «реализация» и ответь на контрольные вопросы 8.1–8.5 (все они касаются именно SQLiteOpenHelper, который мы использовали).  
+
+Готово! Если что-то нужно поправить — пиши.
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Ответы на контрольные вопросы (очень кратко):**
+
+**8.1** Как создать БД SQLite в приложении Android?  
+Наследуем класс от `SQLiteOpenHelper`, в `onCreate()` выполняем `execSQL()` с `CREATE TABLE`.
+
+**8.2** Как получить список строк таблицы БД SQLite?  
+Используем `readableDatabase.query(...)`, проходим по `Cursor` и заполняем `List`.
+
+**8.3** Как добавить новую строку в таблицу БД SQLite?  
+Создаём `ContentValues`, заполняем поля и вызываем `db.insert(table, null, values)`.
+
+**8.4** Как изменить существующую строку в таблице БД SQLite?  
+Создаём `ContentValues` и вызываем `db.update(table, values, "_id = ?", arrayOf(id))`.
+
+**8.5** Как удалить строку из таблицы БД SQLite?  
+Вызываем `db.delete(table, "_id = ?", arrayOf(id.toString()))`.
+
+Готово для отчёта! Коротко и по делу, как просил.
