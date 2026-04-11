@@ -1,0 +1,105 @@
+import kotlinx.coroutines.*
+import kotlin.random.Random
+
+// Задание 5.1.2 + 5.4.1
+suspend fun printSheeps() {
+    println("Корутина овечек выполняется в потоке: ${Thread.currentThread().name}")
+    for (i in 1..500) {
+        println("$i овечка")
+    }
+    delay(1000)
+    for (i in 501..1000) {
+        println("$i овечка")
+    }
+}
+
+// Задание 5.1.2 + 5.4.1
+suspend fun printCats() {
+    println("Корутина котиков выполняется в потоке: ${Thread.currentThread().name}")
+    for (i in 1..500) {
+        println("$i котик")
+        delay(10)
+    }
+}
+
+// Задание 5.2.1 + 5.2.3
+suspend fun loadFiles() {
+    try {
+        for (n in 1..30) {
+            println("Загрузка файла $n")
+            delay(3000)
+        }
+        println("Все файлы загружены")
+    } catch (e: CancellationException) {
+        println("Загрузка отменена")
+    }
+}
+
+// Задание 5.3.1 + 5.3.2
+suspend fun connectToDB() {
+    withTimeout(10000) {
+        repeat(5) {
+            println("Попытка подключения к БД")
+            delay(3000)
+        }
+    }
+}
+
+// Задание 5.5.1
+suspend fun connectToServer(): Int {
+    println("Подключение к веб-серверу")
+    delay(1000)
+    val codes = listOf(200, 400, 401, 403, 404, 410, 500)
+    return codes.random()
+}
+
+// ======================== MAIN ========================
+
+fun main() = runBlocking {
+    // 5.4.1
+    println("Основная функция main выполняется в потоке: ${Thread.currentThread().name}")
+
+    // Задание 5.1 + 5.4.1
+    println("\n=== Задание 5.1 и 5.4.1 ===")
+    coroutineScope {
+        launch { printSheeps() }
+        launch { printCats() }
+    }
+
+    // Задание 5.2 + 5.4.2
+    println("\n=== Задание 5.2 и 5.4.2 ===")
+    coroutineScope {
+        val job = launch(Dispatchers.IO) {
+            loadFiles()
+        }
+
+        println("Для отмены загрузки введите команду 'cancel' и нажмите Enter:")
+        val command = readln().trim()
+
+        if (command == "cancel") {
+            job.cancel()
+        }
+    }
+
+    // Задание 5.3
+    println("\n=== Задание 5.3 ===")
+    try {
+        connectToDB()
+    } catch (e: TimeoutCancellationException) {
+        println("Превышено время ожидания")
+    }
+
+    // Задание 5.5
+    println("\n=== Задание 5.5 ===")
+    val deferred: Deferred<Int> = async { connectToServer() }
+    val httpStatus = deferred.await()
+    println("Получен код состояния HTTP: $httpStatus")
+
+    println("\n=== Лабораторная работа №10 завершена ===")
+}
+
+
+
+
+
+implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
