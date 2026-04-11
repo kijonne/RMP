@@ -1,0 +1,379 @@
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                LabWork17App()
+            }
+        }
+    }
+}
+
+@Composable
+fun LabWork17App() {
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Регистрация", "PIN-код", "О себе", "Шрифт")
+
+    Column {
+        TabRow(selectedTabIndex = selectedTab) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title) }
+                )
+            }
+        }
+
+        when (selectedTab) {
+            0 -> RegistrationScreen()
+            1 -> PinCodeScreen()
+            2 -> AboutMeScreen()
+            3 -> FontSettingsScreen()
+        }
+    }
+}
+
+// Задание 5.1 + 5.3.1 + 5.3.2
+@Composable
+fun RegistrationScreen() {
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+    var website by remember { mutableStateOf("") }
+    var agreed by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
+
+    val allFilled = login.isNotBlank() && password.isNotBlank() &&
+            confirmPassword.isNotBlank() && phone.isNotBlank() &&
+            email.isNotBlank() && age.isNotBlank() && website.isNotBlank()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedTextField(
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
+            placeholder = { Text("Введите логин") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Пароль") },
+            placeholder = { Text("Введите пароль") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Подтверждение пароля") },
+            placeholder = { Text("Повторите пароль") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Номер телефона") },
+            placeholder = { Text("Введите номер телефона") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            placeholder = { Text("Введите email") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = age,
+            onValueChange = { age = it },
+            label = { Text("Возраст") },
+            placeholder = { Text("Введите возраст") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = website,
+            onValueChange = { website = it },
+            label = { Text("Персональный сайт") },
+            placeholder = { Text("Введите URL сайта") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = agreed,
+                onCheckedChange = { agreed = it }
+            )
+            Text(
+                text = "Я согласен на обработку своих персональных данных и принимаю условия Политики конфиденциальности и Пользовательского соглашения",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Button(
+            onClick = {
+                message = if (allFilled && agreed) "$login, вы зарегистрированы"
+                else "Не все поля заполнены"
+            },
+            enabled = allFilled && agreed,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Зарегистрироваться")
+        }
+
+        if (message.isNotEmpty()) {
+            Text(text = message, style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+// Задание 5.2
+@Composable
+fun PinCodeScreen() {
+    var pinInput by remember { mutableStateOf("") }
+    var attempts by remember { mutableStateOf(3) }
+    var result by remember { mutableStateOf("") }
+    val correctPin = "1234"
+    val isBlocked = attempts <= 0
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Введите PIN-код (4 цифры)", style = MaterialTheme.typography.titleMedium)
+
+        OutlinedTextField(
+            value = pinInput,
+            onValueChange = {
+                if (it.length <= 4 && it.all { char -> char.isDigit() }) {
+                    pinInput = it
+                }
+            },
+            label = { Text("PIN-код") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            visualTransformation = PasswordVisualTransformation(),
+            enabled = !isBlocked,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                if (pinInput.length == 4) {
+                    if (pinInput == correctPin) {
+                        result = "Верно!"
+                        attempts = 3
+                        pinInput = ""
+                    } else {
+                        attempts--
+                        result = if (attempts > 0) "Неверно. Осталось попыток: $attempts" else "Попытки исчерпаны"
+                    }
+                }
+            },
+            enabled = !isBlocked && pinInput.length == 4,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Отправить")
+        }
+
+        Text(
+            text = when {
+                isBlocked -> "Ввод заблокирован"
+                result.isNotEmpty() -> result
+                else -> "Попыток осталось: $attempts"
+            },
+            color = if (isBlocked) Color.Red else Color.Unspecified
+        )
+    }
+}
+
+// Задание 5.2.6 + 5.2.7 + 5.2.8
+@Composable
+fun AboutMeScreen() {
+    var aboutText by remember { mutableStateOf("") }
+    val maxLength = 300
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text("О себе (макс. 300 символов)", style = MaterialTheme.typography.titleMedium)
+
+        OutlinedTextField(
+            value = aboutText,
+            onValueChange = {
+                if (it.length <= maxLength) aboutText = it
+            },
+            label = { Text("Введите текст") },
+            placeholder = { Text("Расскажите о себе...") },
+            maxLines = 10,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "${maxLength - aboutText.length} символов осталось",
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
+// Задание 5.3.3 + 5.3.4 + 5.3.5 + 5.4 + 5.5
+@Composable
+fun FontSettingsScreen() {
+    val colors = listOf(
+        "Чёрный" to Color.Black,
+        "Красный" to Color.Red,
+        "Синий" to Color.Blue,
+        "Зелёный" to Color.Green,
+        "Фиолетовый" to Color(0xFF9C27B0)
+    )
+
+    var selectedColor by remember { mutableStateOf(Color.Black) }
+    var fontSize by remember { mutableStateOf(16f) }
+    var isBold by remember { mutableStateOf(false) }
+    var isItalic by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Пример текста с настройками шрифта",
+            fontSize = fontSize.sp,
+            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
+            fontStyle = if (isItalic) FontStyle.Italic else FontStyle.Normal,
+            color = selectedColor
+        )
+
+        // RadioButton для цвета
+        Text("Цвет текста:", style = MaterialTheme.typography.titleSmall)
+        colors.forEach { (label, color) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = selectedColor == color,
+                        onClick = { selectedColor = color }
+                    )
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = selectedColor == color,
+                    onClick = { selectedColor = color }
+                )
+                Text(label, modifier = Modifier.padding(start = 8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(color)
+                )
+            }
+        }
+
+        // Slider
+        Text("Размер шрифта: ${fontSize.toInt()}", style = MaterialTheme.typography.titleSmall)
+        Slider(
+            value = fontSize,
+            onValueChange = { fontSize = it },
+            valueRange = 10f..30f,
+            steps = 19,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Switches
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Switch(checked = isBold, onCheckedChange = { isBold = it })
+            Text("Полужирный", modifier = Modifier.padding(start = 8.dp))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Switch(checked = isItalic, onCheckedChange = { isItalic = it })
+            Text("Курсив", modifier = Modifier.padding(start = 8.dp))
+        }
+    }
+}
+
+
+
+
+
+
+
+
+**Ответы на контрольные вопросы:**
+
+**8.1** Какие элементы позволяют ввести текстовые значения?  
+`OutlinedTextField` (или `TextField`) — основные элементы для ввода текста в Jetpack Compose.
+
+**8.2** Как настроить тип клавиатуры?  
+Через параметр `keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.XXX)`, где XXX — `Text`, `Password`, `Number`, `Phone`, `Email`, `Uri` и др.
+
+**8.3** Как связать значение из элемента управления с переменной?  
+С помощью `mutableStateOf()` и двух параметров:  
+`value = переменная`, `onValueChange = { переменная = it }`.
+
+**8.4** Для чего используется combobox, какие его основные настройки?  
+Combobox (в Compose — `ExposedDropdownMenuBox`) используется для выбора одного значения из раскрывающегося списка.  
+Основные настройки: `expanded`, `onExpandedChange`, `TextField` для отображения выбранного значения, `DropdownMenu` + `DropdownMenuItem`.
+
+**8.5** Для чего используется radiobutton, какие его основные настройки?  
+`RadioButton` используется для выбора **одного** варианта из группы.  
+Основные настройки: `selected`, `onClick`. Для клика по всей строке добавляют `Modifier.selectable()`.
+
+**8.6** Для чего используется slider, какие его основные настройки?  
+`Slider` используется для выбора числового значения в заданном диапазоне (например, размер шрифта).  
+Основные настройки: `value`, `onValueChange`, `valueRange`, `steps`.
+
+**8.7** Для чего используется switch, какие его основные настройки?  
+`Switch` — переключатель «вкл/выкл» (boolean).  
+Основные настройки: `checked`, `onCheckedChange`.
+
+Готово! Можно сразу копировать в отчёт (раздел 7.3).
