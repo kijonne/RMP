@@ -1,0 +1,338 @@
+// Project: Pract9
+// Создано строго по ТЗ лабораторной №21
+
+// build.gradle (Module: app) - добавьте зависимости
+/*
+dependencies {
+    implementation("androidx.compose.material3:material3:1.3.0")
+    implementation("androidx.compose.ui:ui:1.7.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+}
+*/
+
+package com.example.pract9
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
+import kotlin.random.Random
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "menu") {
+                    composable("menu") { MenuScreen(navController) }
+                    composable("task1") { Task1Screen() }
+                    composable("task2_3") { Task2And3Screen() }
+                    composable("task4") { Task4Screen() }
+                    composable("task5") { Task5Screen() }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MenuScreen(navController: NavHostController) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Практическая 9 (ЛР №21)", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(32.dp))
+        
+        Button(onClick = { navController.navigate("task1") }) {
+            Text("5.1 AlertDialog (простой)")
+        }
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = { navController.navigate("task2_3") }) {
+            Text("5.2 + 5.3 AlertDialog (с проверкой)")
+        }
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = { navController.navigate("task4") }) {
+            Text("5.4 Snackbar (очистка кэша)")
+        }
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = { navController.navigate("task5") }) {
+            Text("5.5 Snackbar с действиями")
+        }
+    }
+}
+
+// ==================== 5.1 ====================
+@Composable
+fun Task1Screen() {
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Авторизация", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Пароль") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(16.dp))
+        
+        Button(onClick = { showDialog = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("Авторизоваться")
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Успешная авторизация") },
+            text = { Text("Добро пожаловать, $login") },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("ОК")
+                }
+            }
+        )
+    }
+}
+
+// ==================== 5.2 + 5.3 ====================
+@Composable
+fun Task2And3Screen() {
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Авторизация", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Пароль") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(16.dp))
+        
+        Button(
+            onClick = {
+                if (login.isNotBlank() && password.isNotBlank()) {
+                    showSuccessDialog = true
+                } else {
+                    showErrorDialog = true
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Авторизоваться")
+        }
+    }
+
+    // Успешный диалог
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Успешная авторизация", color = Color.White) },
+            text = { Text("Добро пожаловать, $login", color = Color.White) },
+            containerColor = Color(0xFF1E88E5),
+            confirmButton = {
+                TextButton(onClick = { showSuccessDialog = false }) {
+                    Text("ОК")
+                }
+            }
+        )
+    }
+
+    // Диалог ошибки (с оформлением по 5.3)
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Ошибка", color = Color.White) },
+            text = { Text("Заполните оба поля!", color = Color.White) },
+            containerColor = Color(0xFFE53935),
+            confirmButton = {
+                TextButton(
+                    onClick = { showErrorDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(4.dp))
+                    Text("ОК")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showErrorDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                ) {
+                    Icon(Icons.Default.Clear, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+}
+
+// ==================== 5.4 ====================
+@Composable
+fun Task4Screen() {
+    var cacheSize by remember { mutableStateOf(Random.nextInt(100, 1000)) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "$cacheSize МБ",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Spacer(Modifier.height(32.dp))
+            
+            Button(
+                onClick = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Кэш очищен",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                    cacheSize = 0
+                }
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Очистить кэш")
+            }
+        }
+    }
+}
+
+// ==================== 5.5 ====================
+@Composable
+fun Task5Screen() {
+    var showGameMessage by remember { mutableStateOf(false) }
+    var showImage by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(onClick = {
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Загрузить дополнительные ресурсы?",
+                        actionLabel = "OK",
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite
+                    )
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> {
+                            showGameMessage = true
+                            showImage = true
+                        }
+                        SnackbarResult.Dismissed -> {
+                            showGameMessage = true
+                        }
+                    }
+                }
+            }) {
+                Text("Играть")
+            }
+
+            if (showGameMessage) {
+                Spacer(Modifier.height(32.dp))
+                Text(
+                    text = "Вы вошли в игру",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                
+                if (showImage) {
+                    Spacer(Modifier.height(16.dp))
+                    // Любая картинка из ресурсов (замените на свой drawable)
+                    Image(
+                        painter = painterResource(id = android.R.drawable.ic_dialog_info),
+                        contentDescription = "Игровая картинка",
+                        modifier = Modifier.size(200.dp)
+                    )
+                }
+            }
+        }
+    }
+}
