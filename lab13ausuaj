@@ -1,0 +1,377 @@
+```kotlin
+// =============================================
+// Lab13 - Полный код по ТЗ
+// =============================================
+
+package com.example.lab13
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.lab13.screens.AuthScreen
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MainScreen()
+                }
+            }
+        }
+    }
+}
+
+// ====================== 5.1 ======================
+@Composable
+fun Greeting(groupName: String) {
+    Text(
+        text = "Привет, $groupName",
+        fontSize = 28.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.Blue,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    MaterialTheme {
+        Greeting("ИК-21")
+    }
+}
+
+// ====================== 5.2 ======================
+@Composable
+fun Task2() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Добро пожаловать", fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Composable
+fun Task2Column() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Добро пожаловать", fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Composable
+fun Task2Row() {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Добро пожаловать", fontSize = 24.sp)
+        Spacer(modifier = Modifier.width(16.dp))
+        Button(onClick = { }) {
+            Text("ОК")
+        }
+    }
+}
+
+@Composable
+fun Task2Box() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Добро пожаловать", fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { }) {
+                Text("ОК")
+            }
+        }
+    }
+}
+
+// ====================== 5.3 ======================
+@Composable
+fun Task3Box() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Красная рамка
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .border(4.dp, Color.Red)
+        )
+
+        // Синяя рамка
+        Box(
+            modifier = Modifier
+                .fillMaxSize(0.9f)
+                .align(Alignment.Center)
+                .border(4.dp, Color.Blue)
+        )
+
+        // Чёрный квадрат в центре
+        Box(
+            modifier = Modifier
+                .size(180.dp)
+                .align(Alignment.Center)
+                .background(Color.Black)
+        )
+
+        // Дополнительные цветные полосы по краям (как на рисунке 1)
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .background(Color(0xFF00FF00))
+        )
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .background(Color(0xFFFFA500))
+        )
+        Box(
+            modifier = Modifier
+                .height(40.dp)
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .background(Color.White)
+        )
+        Box(
+            modifier = Modifier
+                .height(40.dp)
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(Color.Magenta)
+        )
+    }
+}
+
+@Composable
+fun Task3Column() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
+        // Красная полоса 5%
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.05f)
+                .background(Color.Red)
+        )
+        // Зелёная 15%
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.15f)
+                .background(Color.Green)
+        )
+        // Синяя 30%
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.30f)
+                .background(Color.Blue)
+        )
+        // Жёлтая 50%
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.50f)
+                .background(Color.Yellow)
+        )
+    }
+}
+
+// ====================== 5.4 ======================
+@Composable
+fun Task5() {
+    val items = listOf(
+        "Элемент 1",
+        "Элемент 2",
+        "Элемент 3",
+        "Элемент 4",
+        "Элемент 5"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items.forEach { item ->
+            Text(
+                text = item,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.LightGray, RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            )
+        }
+    }
+}
+
+// ====================== 5.5 ======================
+package com.example.lab13.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun AuthScreen() {
+    var login by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Авторизация",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        OutlinedTextField(
+            value = login,
+            onValueChange = { login = it },
+            label = { Text("Логин") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Пароль") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { /* TODO */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Авторизоваться", fontSize = 18.sp)
+        }
+    }
+}
+
+// ====================== Главный экран ======================
+@Composable
+fun MainScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Greeting("ИК-21")           // 5.1
+
+        Text("Task2Column:", style = MaterialTheme.typography.titleMedium)
+        Task2Column()
+
+        Text("Task2Row:", style = MaterialTheme.typography.titleMedium)
+        Task2Row()
+
+        Text("Task2Box:", style = MaterialTheme.typography.titleMedium)
+        Task2Box()
+
+        Text("Task3 Box (Рисунок 1):", style = MaterialTheme.typography.titleMedium)
+        Task3Box()
+
+        Text("Task3 Column (Рисунок 2):", style = MaterialTheme.typography.titleMedium)
+        Task3Column()
+
+        Text("Task5 (Список):", style = MaterialTheme.typography.titleMedium)
+        Task5()
+
+        Text("Экран авторизации:", style = MaterialTheme.typography.titleMedium)
+        AuthScreen()
+    }
+}
+```
+
+### Как использовать:
+
+1. Создай новый проект в **Android Studio**:
+   - **Empty Activity**
+   - Язык: **Kotlin**
+   - **Use Jetpack Compose** — включено
+
+2. Назови проект **Lab13**
+
+3. Замени содержимое файла `MainActivity.kt` на код выше.
+
+4. Создай пакет `screens` и в нём файл `AuthScreen.kt` (код для него уже включён выше).
+
+5. Всё строго по ТЗ, без лишнего кода.
+
+Готово! Можешь запускать и сдавать.
