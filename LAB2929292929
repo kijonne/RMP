@@ -1,0 +1,475 @@
+**Готово!** Я подготовил для тебя **полный проект LabWork29** по лабораторной работе №29. Ниже — подробная пошаговая инструкция, что делать, с готовым кодом.
+
+### 1. Создание проекта
+
+1. Открой **Android Studio**.
+2. **New Project** → **Empty Activity** (Compose).
+3. Название проекта: **`LabWork29`**
+4. Package name: `com.example.labwork29` (или любой другой).
+5. Язык: **Kotlin**
+6. Minimum SDK: **API 24** (или выше).
+7. Нажми **Finish**.
+
+### 2. Настройка Gradle (build.gradle.kts Module: app)
+
+Замени содержимое `build.gradle.kts (Module: app)` на следующее:
+
+```kotlin
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.example.labwork29"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.example.labwork29"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+dependencies {
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // ViewModel + Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    // Coil для загрузки изображений (не обязательно, но полезно)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+}
+```
+
+**Синхронизируй Gradle** (кнопка Sync).
+
+### 3. AndroidManifest.xml
+
+Добавь разрешение на интернет **перед** тегом `<application>`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+### 4. Data Classes
+
+Создай пакет `data` и файл **Post.kt**:
+
+```kotlin
+package com.example.labwork29.data
+
+data class Post(
+    val id: Int,
+    val username: String,
+    val title: String,
+    val body: String
+)
+```
+
+Создай пакет `data` и файл **Comment.kt**:
+
+```kotlin
+package com.example.labwork29.data
+
+data class Comment(
+    val id: Int,
+    val postId: Int,
+    val username: String,
+    val body: String
+)
+```
+
+### 5. API Interface (ApiService.kt)
+
+Создай пакет `network` и файл **ApiService.kt**:
+
+```kotlin
+package com.example.labwork29.network
+
+import com.example.labwork29.data.Comment
+import com.example.labwork29.data.Post
+import retrofit2.http.*
+
+interface ApiService {
+
+    @GET("/posts")
+    suspend fun getPosts(): List<Post>
+
+    @GET("/posts/{postId}/comments")
+    suspend fun getComments(@Path("postId") postId: Int): List<Comment>
+
+    @POST("/posts")
+    suspend fun createPost(@Body post: Post): Post
+
+    @POST("/comments")
+    suspend fun createComment(@Body comment: Comment): Comment
+}
+```
+
+### 6. Retrofit Client (RetrofitInstance.kt)
+
+В пакете `network`:
+
+```kotlin
+package com.example.labwork29.network
+
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+object RetrofitInstance {
+    private const val BASE_URL = "https://forumapi.snowowl.ru"
+
+    val api: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+}
+```
+
+### 7. ViewModel (MainViewModel.kt)
+
+Создай пакет `viewmodel`:
+
+```kotlin
+package com.example.labwork29.viewmodel
+
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.labwork29.data.Comment
+import com.example.labwork29.data.Post
+import com.example.labwork29.network.RetrofitInstance
+import kotlinx.coroutines.launch
+
+class MainViewModel : ViewModel() {
+    var posts = mutableStateOf<List<Post>>(emptyList())
+    var isLoading = mutableStateOf(false)
+    var error = mutableStateOf<String?>(null)
+
+    // Для комментариев
+    var commentsMap = mutableStateOf<Map<Int, List<Comment>>>(emptyMap())
+    var expandedPostId = mutableStateOf<Int?>(null)
+
+    init {
+        loadPosts()
+    }
+
+    fun loadPosts() {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                posts.value = RetrofitInstance.api.getPosts()
+                error.value = null
+            } catch (e: Exception) {
+                error.value = "Ошибка загрузки: ${e.message}"
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    fun loadComments(postId: Int) {
+        if (commentsMap.value[postId] != null) {
+            expandedPostId.value = if (expandedPostId.value == postId) null else postId
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val comments = RetrofitInstance.api.getComments(postId)
+                commentsMap.value = commentsMap.value + (postId to comments)
+                expandedPostId.value = postId
+            } catch (e: Exception) {
+                error.value = "Ошибка загрузки комментариев: ${e.message}"
+            }
+        }
+    }
+
+    fun createPost(title: String, body: String, username: String = "Student") {
+        viewModelScope.launch {
+            try {
+                val newPost = Post(id = 0, username = username, title = title, body = body)
+                val created = RetrofitInstance.api.createPost(newPost)
+                posts.value = listOf(created) + posts.value
+            } catch (e: Exception) {
+                error.value = "Ошибка создания поста: ${e.message}"
+            }
+        }
+    }
+
+    fun createComment(postId: Int, body: String, username: String = "Student") {
+        viewModelScope.launch {
+            try {
+                val newComment = Comment(id = 0, postId = postId, username = username, body = body)
+                val created = RetrofitInstance.api.createComment(newComment)
+                
+                // Обновляем список комментариев
+                val current = commentsMap.value[postId] ?: emptyList()
+                commentsMap.value = commentsMap.value + (postId to current + created)
+            } catch (e: Exception) {
+                error.value = "Ошибка создания комментария: ${e.message}"
+            }
+        }
+    }
+}
+```
+
+### 8. Главный экран (MainActivity.kt + UI)
+
+Замени содержимое `MainActivity.kt`:
+
+```kotlin
+package com.example.labwork29
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.labwork29.viewmodel.MainViewModel
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            LabWork29Theme {
+                MainScreen()
+            }
+        }
+    }
+}
+
+@Composable
+fun LabWork29Theme(content: @Composable () -> Unit) {
+    MaterialTheme(content = content)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen(viewModel: MainViewModel = viewModel()) {
+    val posts by viewModel.posts
+    val isLoading by viewModel.isLoading
+    val error by viewModel.error
+    val expandedPostId by viewModel.expandedPostId
+    val commentsMap by viewModel.commentsMap
+
+    var showAddPostDialog by remember { mutableStateOf(false) }
+    var newTitle by remember { mutableStateOf("") }
+    var newBody by remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("LabWork29 - Форум") },
+                actions = {
+                    Button(onClick = { showAddPostDialog = true }) {
+                        Text("Новый пост")
+                    }
+                })
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            }
+
+            error?.let {
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
+
+            LazyColumn {
+                items(posts) { post ->
+                    PostItem(
+                        post = post,
+                        isExpanded = expandedPostId == post.id,
+                        comments = commentsMap[post.id] ?: emptyList(),
+                        onToggleComments = { viewModel.loadComments(post.id) },
+                        onAddComment = { commentBody ->
+                            viewModel.createComment(post.id, commentBody)
+                        }
+                    )
+                    Divider()
+                }
+            }
+        }
+    }
+
+    if (showAddPostDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddPostDialog = false },
+            title = { Text("Новый пост") },
+            text = {
+                Column {
+                    TextField(value = newTitle, onValueChange = { newTitle = it }, label = { Text("Заголовок") })
+                    TextField(value = newBody, onValueChange = { newBody = it }, label = { Text("Текст") })
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (newTitle.isNotBlank() && newBody.isNotBlank()) {
+                        viewModel.createPost(newTitle, newBody)
+                        newTitle = ""
+                        newBody = ""
+                        showAddPostDialog = false
+                    }
+                }) {
+                    Text("Опубликовать")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showAddPostDialog = false }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun PostItem(
+    post: Post,
+    isExpanded: Boolean,
+    comments: List<Comment>,
+    onToggleComments: () -> Unit,
+    onAddComment: (String) -> Unit
+) {
+    var showCommentDialog by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Автор: ${post.username}", style = MaterialTheme.typography.labelSmall)
+            Text(post.title, style = MaterialTheme.typography.headlineSmall)
+            Text(post.body, modifier = Modifier.padding(vertical = 8.dp))
+
+            Row {
+                Button(onClick = onToggleComments) {
+                    Text(if (isExpanded) "Скрыть комментарии" else "Комментарии")
+                }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = { showCommentDialog = true }) {
+                    Text("Добавить комментарий")
+                }
+            }
+
+            if (isExpanded) {
+                LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                    items(comments) { comment ->
+                        Text("• ${comment.username}: ${comment.body}", modifier = Modifier.padding(4.dp))
+                    }
+                }
+            }
+        }
+    }
+
+    if (showCommentDialog) {
+        AlertDialog(
+            onDismissRequest = { showCommentDialog = false },
+            title = { Text("Новый комментарий") },
+            text = {
+                TextField(
+                    value = commentText,
+                    onValueChange = { commentText = it },
+                    label = { Text("Текст комментария") }
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (commentText.isNotBlank()) {
+                        onAddComment(commentText)
+                        commentText = ""
+                        showCommentDialog = false
+                    }
+                }) {
+                    Text("Отправить")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showCommentDialog = false }) { Text("Отмена") }
+            }
+        )
+    }
+}
+```
+
+### Что дальше?
+
+1. Запусти приложение.
+2. Оно должно загрузить список постов.
+3. Кнопка «Новый пост» открывает диалог.
+4. Под каждым постом — кнопки «Комментарии» и «Добавить комментарий».
+
+### Контрольные вопросы (ответы для отчёта)
+
+**8.1** Что такое REST?  
+REST (Representational State Transfer) — архитектурный стиль взаимодействия компонентов распределённой гипермедиа-системы (обычно веб-приложений).
+
+**8.2** Какие методы являются стандартными для REST?  
+GET, POST, PUT, DELETE, PATCH.
+
+**8.3** Какой формат может быть у данных, возвращаемых при использовании REST?  
+JSON, XML, HTML, plain text и др. (чаще всего JSON).
+
+**8.4** Для чего используется библиотека retrofit2?  
+Для упрощения работы с REST API — объявляешь интерфейс, Retrofit сам генерирует HTTP-запросы и парсит JSON.
+
+**8.5** Как в манифесте Android разрешить использование сети интернет?  
+`<uses-permission android:name="android.permission.INTERNET"/>`
+
+---
+
+Если нужно — могу скинуть весь проект в zip (но для этого скажи, как удобнее передать). Удачи с защитой лабораторной! 🚀
